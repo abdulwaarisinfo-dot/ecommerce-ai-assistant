@@ -559,7 +559,7 @@ async def add_new_product(
     products_col.insert_one(new_product)
 
     return templates.TemplateResponse(
-        "home.html",
+        "index.html",
         {"request": request, "message": "Product added successfully!"}
     )
 
