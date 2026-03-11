@@ -523,6 +523,7 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.post("/Add_product")
 async def add_new_product(
     request: Request,
+    id: str = Form(...),
     title: str = Form(...),
     description: str = Form(...),
     category: str = Form(...),
@@ -536,6 +537,7 @@ async def add_new_product(
 ):
 
     new_product = {
+        "id": id,
         "title": title,
         "description": description,
         "category": category,
