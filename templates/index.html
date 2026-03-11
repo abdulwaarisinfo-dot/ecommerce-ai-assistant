@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxeStore | Professional Ops</title>
+
+    <!-- LIBRARIES -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --sidebar-width: 260px;
+            --primary: #2563eb; 
+            --primary-hover: #1d4ed8;
+            --accent: #64748b;
+            --bg-main: #f8fafc;
+            --bg-side: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-main);
+            color: #0f172a;
+            margin: 0;
+            overflow-x: hidden;
+            font-size: 14px;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            background: var(--bg-side);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem 3rem;
+            min-height: 100vh;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+            background: #f1f5f9;
+        }
+
+        .nav-item.active {
+            background: #eff6ff;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .tab-pane { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tab-pane.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { padding: 16px; border-bottom: 2px solid #f1f5f9; background: #fafafa; font-size: 11px; }
+        td { padding: 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        
+        .product-img-wrapper {
+            width: 48px;
+            height: 48px;
+            background: #f8fafc;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #f1f5f9;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .growth-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        /* NEW CHAT ICON STYLING */
+        .floating-chat {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+        }
+
+        .floating-chat:hover {
+            transform: scale(1.1) translateY(-5px);
+            background: var(--primary-hover);
+            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay" class="fixed inset-0 bg-slate-50 z-[100] flex items-center justify-center">
+    <div class="max-w-md w-full p-10 bg-white rounded-3xl shadow-xl border border-slate-100 text-center">
+        <div class="mb-8">
+            <div class="w-16 h-16 bg-blue-600 text-white flex items-center justify-center rounded-2xl mx-auto mb-6 text-2xl shadow-lg shadow-blue-200">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900">Security Terminal</h1>
+            <p class="text-slate-500 text-sm mt-2">Authorized Personnel Only</p>
+        </div>
+        <form action="/password" method="POST" class="space-y-4">
+            <input type="password" name="password" required placeholder="Enter Security Key" class="input-field text-center tracking-[0.3em] font-bold border-2 focus:border-blue-500">
+            <button class="btn-primary w-full shadow-lg shadow-blue-100 py-4">Verify Identity</button>
+        </form>
+        <div id="error-msg" class="hidden mt-6 text-xs text-red-500 font-bold uppercase tracking-widest">Invalid Security Key</div>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="flex items-center gap-3 mb-10 px-2">
+        <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-blue-100">P</div>
+        <span class="font-bold text-base tracking-tight text-slate-900">Pixup8k</span>
+    </div>
+
+    <nav class="flex-1">
+        <div onclick="switchTab('dashboard')" id="link-dashboard" class="nav-item active">
+            <i class="fa-solid fa-chart-line w-5"></i> Dashboard
+        </div>
+        <div onclick="switchTab('inventory')" id="link-inventory" class="nav-item">
+            <i class="fa-solid fa-box-archive w-5"></i> Inventory
+        </div>
+        <div onclick="switchTab('analytics')" id="link-analytics" class="nav-item">
+            <i class="fa-solid fa-microchip w-5"></i> Analytics
+        </div>
+        <div onclick="switchTab('add-product')" id="link-add-product" class="nav-item">
+            <i class="fa-solid fa-plus w-5"></i> New Entry
+        </div>
+    </nav>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <header class="flex justify-between items-center mb-10">
+        <div>
+            <h2 id="page-title" class="text-3xl font-bold tracking-tight text-slate-900 capitalize">Dashboard</h2>
+            <p class="text-sm text-slate-500 mt-1">System Overview & Data Sync</p>
+        </div>
+        <div id="connection-status" class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white px-5 py-2.5 border border-slate-200 rounded-full shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Syncing Node...
+        </div>
+    </header>
+
+    <!-- DASHBOARD TAB -->
+    <div id="tab-dashboard" class="tab-pane active space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Number of Products</p>
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-layer-group"></i></div>
+                </div>
+                <h3 id="stat-count" class="text-3xl font-bold text-slate-900">--</h3>
+                <div class="mt-4 flex items-center gap-2">
+                    <span class="growth-tag bg-emerald-50 text-emerald-600">growth</span>
+                </div>
+            </div>
+            <div class="glass-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Interactions</p>
+                    <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-hand-pointer"></i></div>
+                </div>
+                <h3 id="stat-total-clicks" class="text-3xl font-bold text-slate-900">--</h3>
+                <div class="mt-4 flex items-center gap-2">
+                    <span id="click-growth-percent" class="growth-tag bg-emerald-50 text-emerald-600">Calculating...</span>
+                </div>
+            </div>
+            <div class="glass-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Global Queries</p>
+                    <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs"><i class="fa-solid fa-magnifying-glass"></i></div>
+                </div>
+                <h3 id="stat-total-searches" class="text-3xl font-bold text-slate-900">--</h3>
+                <div class="mt-4 flex items-center gap-2">
+                    <span class="growth-tag bg-blue-50 text-blue-600">Stable Node</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div class="lg:col-span-3 glass-card">
+                <div class="flex justify-between items-center mb-8">
+                    <h4 class="font-bold text-sm text-slate-800">Global Search Engagement</h4>
+                    <div class="flex gap-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Search Clusters</span>
+                    </div>
+                </div>
+                <div class="h-[320px] relative">
+                    <canvas id="searchCircleChart"></canvas>
+                </div>
+            </div>
+            <div class="lg:col-span-2 glass-card">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="font-bold text-sm text-slate-800">Latest Registry</h4>
+                    <button onclick="switchTab('inventory')" class="text-xs font-bold text-blue-600 hover:underline">inventory</button>
+                </div>
+                <div id="recent-grid" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVENTORY TAB -->
+    <div id="tab-inventory" class="tab-pane">
+        <div class="mb-10 glass-card p-4">
+            <div class="relative w-full">
+                <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="inventory-search-input" placeholder="Query Master Registry by ID, Title or Category..." class="input-field pl-12 py-4 border-none bg-slate-50">
+            </div>
+        </div>
+        <div id="full-inventory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </div>
+
+    <!-- ANALYTICS TAB -->
+    <div id="tab-analytics" class="tab-pane space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 glass-card">
+                <div class="flex justify-between items-center mb-10">
+                    <h4 class="font-bold text-sm text-slate-800">Resource Engagement Analytics</h4>
+                    <span class="text-[10px] font-black uppercase text-slate-400">Total Engagement Points</span>
+                </div>
+                <div class="h-[400px]">
+                    <canvas id="clicksChart"></canvas>
+                </div>
+            </div>
+            <div class="space-y-8">
+                <div class="glass-card flex flex-col h-[400px]">
+                    <h4 class="font-bold text-sm text-slate-800 mb-6 flex-shrink-0">User Inquiry Stream</h4>
+                    <div id="questions-list" class="space-y-3 overflow-y-auto custom-scroll pr-2 flex-grow"></div>
+                </div>
+                <div class="glass-card">
+                    <h4 class="font-bold text-sm text-slate-800 mb-4">Supported Languages Usage</h4>
+                    <div class="h-[180px]">
+                        <canvas id="languagesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card overflow-hidden !p-0">
+            <div class="p-6 border-b border-slate-100">
+                <h4 class="font-bold text-sm text-slate-800">Product Synchronization</h4>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-[10px] uppercase font-bold text-slate-500">
+                            <th class="p-4 text-left">Products</th>
+                            <!-- PRICE HISTORY REMOVED -->
+                            <th class="p-4 text-left">Engagement</th>
+                            <th class="p-4 text-right">Node Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analytics-tbody" class="text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD PRODUCT TAB -->
+    <div id="tab-add-product" class="tab-pane max-w-5xl mx-auto">
+        <div class="glass-card p-10">
+            <div class="mb-12 border-b border-slate-100 pb-8">
+                <h3 class="text-2xl font-bold text-slate-900">Product Registration</h3>
+                <p class="text-sm text-slate-500 mt-2">Create a new product record for global distribution.</p>
+            </div>
+            <form action="/Add_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <input type="hidden" name="trending_score" value="0">
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Product Name</label>
+                        <input name="title" placeholder="e.g. Premium Tech Fleece" required class="input-field">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Product ID</label>
+                            <input name="id" placeholder="L-X01" required class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Category</label>
+                            <input name="category" placeholder="Apparel" required class="input-field">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Price ($)</label>
+                            <input type="number" name="price" required class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Material</label>
+                            <input name="material" placeholder="e.g. Cotton" class="input-field">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Product Details</label>
+                        <textarea name="description" class="input-field h-28 resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">image linK</label>
+                        <input name="image_link" required class="input-field" oninput="previewImg(this.value, 'add-prev')">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Page Link</label>
+                        <input name="image" required class="input-field">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input name="color" placeholder="Color" class="input-field">
+                        <input name="rating" placeholder="Rating (0.0)" class="input-field">
+                    </div>
+                    <div class="h-48 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 overflow-hidden relative">
+                        <img id="add-prev" class="max-h-full hidden z-10">
+                        <div id="add-prev-txt" class="text-center">
+                            <i class="fa-solid fa-image text-slate-300 text-3xl mb-2"></i>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Pending</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-2 pt-8">
+                    <button class="btn-primary w-full py-4 text-sm tracking-widest uppercase shadow-lg shadow-blue-100">Confirm and Execute Registration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-6">
+    <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div>
+                <h3 class="font-bold text-xl text-slate-900">Edit Product</h3>
+                <p id="modal-sku-display" class="text-[11px] text-blue-600 font-bold tracking-widest uppercase mt-1">--</p>
+            </div>
+            <button onclick="closeEditModal()" class="w-10 h-10 rounded-full hover:bg-white hover:shadow-sm flex items-center justify-center text-slate-400 transition-all"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-10 overflow-y-auto flex-1">
+            <form id="edit-form" action="/update_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <input type="hidden" name="product_id" id="edit-id">
+                <div class="space-y-5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Product Information</label>
+                    <input name="title" id="edit-title" class="input-field" placeholder="Title">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input name="category" id="edit-category" class="input-field" placeholder="category">
+                        <input name="price" type="number" id="edit-price" class="input-field" placeholder="Price">
+                    </div>
+                    <textarea name="description" id="edit-description" class="input-field h-40" placeholder="Product Description"></textarea>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input name="material" id="edit-material" class="input-field" placeholder="Material">
+                        <input name="color" id="edit-color" class="input-field" placeholder="Color">
+                    </div>
+                </div>
+                <div class="space-y-5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Media & Logic</label>
+                    <input name="image_link" id="edit-image-link" class="input-field" placeholder="Image Link" oninput="previewImg(this.value, 'edit-prev')">
+                    <input name="image" id="edit-image" class="input-field" placeholder="Page link">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input name="rating" id="edit-rating" class="input-field" placeholder="Rating">
+                        <input name="trending_score" id="edit-trending" class="input-field" placeholder="Trending score">
+                    </div>
+                    <div class="h-52 border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 overflow-hidden">
+                        <img id="edit-prev" class="max-h-full">
+                    </div>
+                    <button type="submit" class="btn-primary w-full uppercase tracking-widest text-xs py-5 mt-4">Commit System Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- FLOATING CHAT ICON -->
+<a href="/" class="floating-chat" aria-label="Open Chat">
+    <i class="fa-solid fa-comment-dots"></i>
+</a>
+
+<script>
+let globalData = { products: [] };
+let globalAnalytics = { total_searches: 0, total_clicks: 0, most_questions: {}, product_search: {}, product_clicks: {}, price_updates: {}, supported_languages: {} };
+let chartClicks = null;
+let chartCircle = null;
+let chartLanguages = null;
+const authStatus = "{{ status }}";
+
+document.addEventListener("DOMContentLoaded", () => {
+    if(authStatus === "success") {
+        document.getElementById("auth-overlay").classList.add("hidden");
+        sync();
+    } else if(authStatus === "failed") {
+        document.getElementById("error-msg").classList.remove("hidden");
+    }
+
+    const searchInput = document.getElementById('inventory-search-input');
+    if(searchInput) {
+        searchInput.addEventListener('input', (e) => filterInventory(e.target.value));
+    }
+});
+
+async function sync() {
+    try {
+        const [d, a] = await Promise.all([fetch("/api/data"), fetch("/api/analytics")]);
+        globalData = await d.json();
+        globalAnalytics = await a.json();
+
+        document.getElementById("connection-status").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span>Online`;
+        
+        refreshDashboard();
+        refreshInventory(globalData.products || []);
+    } catch(e) {
+        document.getElementById("connection-status").innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Offline Node`;
+    }
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.getElementById('link-' + tabId).classList.add('active');
+    document.getElementById('page-title').innerText = tabId.replace('-', ' ');
+
+    if(tabId === 'analytics') renderCharts();
+    if(tabId === 'dashboard') renderDashboardCharts();
+}
+
+function refreshDashboard() {
+    const products = globalData.products || [];
+    document.getElementById("stat-count").innerText = products.length;
+    document.getElementById("stat-total-clicks").innerText = globalAnalytics.total_clicks || 0;
+    document.getElementById("stat-total-searches").innerText = globalAnalytics.total_searches || 0;
+
+    const growth = globalAnalytics.total_clicks > 0 ? (globalAnalytics.total_clicks / 500 * 100).toFixed(1) : 0;
+    document.getElementById("click-growth-percent").innerText = `+${growth}% efficiency`;
+
+    const recent = [...products].slice(-4).reverse();
+    document.getElementById("recent-grid").innerHTML = recent.map(p => `
+        <div class="flex items-center gap-4 p-4 border border-slate-50 rounded-2xl hover:bg-slate-50 transition-all cursor-default">
+            <div class="product-img-wrapper w-12 h-12 shadow-sm">
+                <img src="${p.image_link}" class="max-h-full object-contain">
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold truncate text-slate-800 uppercase tracking-tight">${p.title}</p>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">$${p.price} • ${p.category}</p>
+            </div>
+            <span class="text-[9px] font-black px-2 py-1 bg-blue-50 text-blue-600 rounded-md">recorded</span>
+        </div>
+    `).join("");
+    
+    renderDashboardCharts();
+}
+
+function renderDashboardCharts() {
+    const searchData = globalAnalytics.product_search || {};
+    const sortedEntries = Object.entries(searchData).sort((a,b) => b[1] - a[1]).slice(0, 10);
+    const labels = sortedEntries.map(e => e[0]);
+    const counts = sortedEntries.map(e => e[1]);
+
+    if(chartCircle) chartCircle.destroy();
+    const ctx = document.getElementById('searchCircleChart');
+    if(!ctx || labels.length === 0) return;
+    
+    chartCircle = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: counts,
+                backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe', '#eff6ff', '#f1f5f9', '#f8fafc', '#cbd5e1'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            rotation: -90,
+            circumference: 180,
+            plugins: {
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleFont: { size: 12, weight: '600' },
+                    padding: 12,
+                    displayColors: true,
+                    boxPadding: 6
+                },
+                legend: { 
+                    position: 'bottom', 
+                    labels: { 
+                        usePointStyle: true, 
+                        pointStyle: 'rectRounded',
+                        padding: 15,
+                        font: { size: 10, weight: '600' }, 
+                        color: '#64748b' 
+                    } 
+                }
+            }
+        }
+    });
+}
+
+function refreshInventory(list) {
+    const grid = document.getElementById("full-inventory-grid");
+    if(!grid) return;
+    
+    grid.innerHTML = list.length ? list.map(p => `
+        <div class="glass-card group flex flex-col items-center text-center p-6 border-slate-100 hover:border-blue-200">
+            <div class="w-full aspect-square bg-slate-50 rounded-xl p-6 flex items-center justify-center border border-slate-50 mb-6 transition-all group-hover:bg-white group-hover:shadow-inner">
+                <img src="${p.image_link}" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/200x200?text=Asset+Missing'">
+            </div>
+            <div class="w-full flex-1">
+                <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-1">${p.category}</p>
+                <p class="text-sm font-bold text-slate-900 uppercase truncate mb-4">${p.title}</p>
+                <div class="flex items-center justify-center gap-4 mb-6">
+                   <p class="text-base font-bold text-slate-900">$${p.price}</p>
+                   <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                   <p class="text-[10px] font-bold text-slate-400 mono">${p.id}</p>
+                </div>
+            </div>
+            <div class="w-full grid grid-cols-2 gap-2 pt-6 border-t border-slate-50">
+                <button onclick="openEditModal('${p._id}')" class="btn-secondary">Edit</button>
+                <form action="/delete_product" method="POST" onsubmit="return confirm('Archive record?')" class="w-full">
+                    <input type="hidden" name="id" value="${p._id}">
+                    <button class="btn-secondary w-full !text-red-500 hover:!bg-red-50 hover:!border-red-100">Delete</button>
+                </form>
+            </div>
+        </div>
+    `).join("") : '<div class="col-span-full py-20 text-center text-slate-400 font-bold tracking-widest uppercase text-sm">No Registry Found</div>';
+}
+
+function filterInventory(q) {
+    const query = q.toLowerCase();
+    const filtered = globalData.products.filter(p => 
+        (p.title && p.title.toLowerCase().includes(query)) || 
+        (p.id && p.id.toLowerCase().includes(query)) ||
+        (p.category && p.category.toLowerCase().includes(query))
+    );
+    refreshInventory(filtered);
+}
+
+function renderCharts() {
+    const clickData = globalAnalytics.product_clicks || {};
+    const questionData = globalAnalytics.most_questions || {};
+    const languageData = globalAnalytics.supported_languages || {};
+    
+    const entries = Object.entries(clickData).sort((a,b) => b[1]-a[1]).slice(0, 10);
+    const labels = entries.map(([id, val]) => {
+        const p = globalData.products.find(x => x._id === id);
+        return p ? p.title.substring(0, 14) : id.substring(0, 6);
+    });
+    const values = entries.map(e => e[1]);
+
+    if(chartClicks) chartClicks.destroy();
+    const clicksCtx = document.getElementById('clicksChart');
+    if(clicksCtx && values.length > 0) {
+        chartClicks = new Chart(clicksCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Engagement Index',
+                    data: values,
+                    backgroundColor: '#2563eb',
+                    hoverBackgroundColor: '#1d4ed8',
+                    borderRadius: 8,
+                    barThickness: 24
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9', drawBorder: false }, 
+                        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8' } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { font: { size: 10, weight: '600' }, color: '#64748b' } 
+                    }
+                },
+                plugins: { 
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    if(chartLanguages) chartLanguages.destroy();
+    const langCtx = document.getElementById('languagesChart');
+    const langLabels = Object.keys(languageData);
+    const langValues = Object.values(languageData);
+    
+    if(langCtx && langLabels.length > 0) {
+        chartLanguages = new Chart(langCtx, {
+            type: 'pie',
+            data: {
+                labels: langLabels.map(l => l.toUpperCase()),
+                datasets: [{
+                    data: langValues,
+                    backgroundColor: ['#2563eb', '#6366f1', '#10b981', '#f59e0b', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'right',
+                        labels: { font: { size: 10, weight: 'bold' }, boxWidth: 10, padding: 12 }
+                    }
+                }
+            }
+        });
+    }
+
+    const qList = document.getElementById("questions-list");
+    const sortedQ = Object.entries(questionData).sort((a,b) => b[1]-a[1]);
+    qList.innerHTML = sortedQ.length ? sortedQ.map(([q, count]) => `
+        <div class="flex items-start justify-between p-3 border border-slate-50 bg-slate-50/30 rounded-xl hover:bg-slate-100 transition-all group">
+            <div class="flex-1 pr-4">
+                <p class="text-xs font-semibold text-slate-800 leading-relaxed italic">"${q}"</p>
+            </div>
+            <div class="flex-shrink-0">
+                <span class="text-[10px] font-bold bg-white text-blue-600 px-3 py-1 rounded-full border border-blue-100 shadow-sm">${count}</span>
+            </div>
+        </div>
+    `).join("") : '<div class="text-center py-10 text-slate-300 text-xs font-bold uppercase tracking-widest">Inquiry Stream Clear</div>';
+
+    document.getElementById("analytics-tbody").innerHTML = globalData.products.slice(0, 20).map(p => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="font-semibold text-slate-900 p-5">${p.title} <span class="block text-[10px] text-slate-400 mono mt-1">${p.id}</span></td>
+            <td class="text-slate-500 font-bold">${clickData[p._id] || 0} clicks</td>
+            <td class="text-right p-5"><span class="text-[10px] font-black text-emerald-500 uppercase bg-emerald-50 px-3 py-1.5 rounded-full">Synchronized</span></td>
+        </tr>
+    `).join("");
+}
+
+function openEditModal(id) {
+    const p = globalData.products.find(x => x._id === id);
+    if(!p) return;
+    
+    document.getElementById("edit-id").value = p._id;
+    document.getElementById("edit-title").value = p.title || '';
+    document.getElementById("edit-category").value = p.category || '';
+    document.getElementById("edit-price").value = p.price || 0;
+    document.getElementById("edit-image-link").value = p.image_link || '';
+    document.getElementById("edit-image").value = p.image || '';
+    document.getElementById("edit-material").value = p.material || '';
+    document.getElementById("edit-color").value = p.color || '';
+    document.getElementById("edit-rating").value = p.rating || '';
+    document.getElementById("edit-trending").value = p.trending_score || 0;
+    document.getElementById("edit-description").value = p.description || '';
+    
+    document.getElementById("modal-sku-display").innerText = p.id || '--';
+    previewImg(p.image_link, 'edit-prev');
+    
+    document.getElementById("edit-modal").classList.remove("hidden");
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+    document.getElementById("edit-modal").classList.add("hidden");
+    document.body.style.overflow = 'auto';
+}
+
+function previewImg(url, id) {
+    const img = document.getElementById(id);
+    const txt = document.getElementById(id + '-txt');
+    if(url) {
+        img.src = url;
+        img.classList.remove('hidden');
+        if(txt) txt.classList.add('hidden');
+    } else {
+        img.classList.add('hidden');
+        if(txt) txt.classList.remove('hidden');
+    }
+}
+</script>
+</body>
+</html>

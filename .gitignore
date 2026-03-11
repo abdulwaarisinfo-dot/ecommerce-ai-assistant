@@ -1,0 +1,28 @@
+# Python environment
+venv/
+env/
+.venv/
+bin/
+lib/
+include/
+
+# Environment Variables (CRITICAL)
+.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS related
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
