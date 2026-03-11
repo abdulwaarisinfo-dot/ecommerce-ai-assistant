@@ -31,7 +31,13 @@ BOT_DATA: Dict[str, Any] = {}
 PRODUCTS_DATA: List[Dict[str, Any]] = []
 USER_SESSION_HISTORY: Dict[str, Dict[str, Any]] = {}
 
-app = FastAPI(title="AI Chatbot Backend", version="2.0")
+app = FastAPI(
+    title="AI E-Commerce Chabot", 
+    version="2.0",
+    docs_url=None,    # This disables /docs
+    redoc_url=None,   # This disables /redoc
+    openapi_url=None)  # This disables the /openapi.json file)
+
 templates = Jinja2Templates(directory="templates")
 
 # ======================================================
