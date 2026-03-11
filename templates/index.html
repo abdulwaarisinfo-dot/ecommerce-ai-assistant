@@ -34,6 +34,7 @@
 
         .mono { font-family: 'JetBrains Mono', monospace; }
 
+        /* SIDEBAR RESPONSIVE LOGIC */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -43,13 +44,42 @@
             padding: 2.5rem 1.25rem;
             display: flex;
             flex-direction: column;
-            z-index: 50;
+            z-index: 100;
+            transition: transform 0.3s ease;
         }
 
+        /* MAIN CONTENT RESPONSIVE LOGIC */
         .main-content {
             margin-left: var(--sidebar-width);
-            padding: 2.5rem 3rem;
+            padding: 2rem 1.5rem;
             min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* MOBILE OVERLAY */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding-top: 5rem; /* Space for mobile header */
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
         }
 
         .nav-item {
@@ -177,20 +207,40 @@
             font-weight: 700;
         }
 
-        /* NEW CHAT ICON STYLING */
+        /* MOBILE HEADER */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            z-index: 80;
+            align-items: center;
+            padding: 0 1.5rem;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-header { display: flex; }
+        }
+
+        /* FLOATING CHAT ICON STYLING */
         .floating-chat {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             background: var(--primary);
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 22px;
             box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
             cursor: pointer;
             z-index: 1000;
@@ -201,15 +251,19 @@
         .floating-chat:hover {
             transform: scale(1.1) translateY(-5px);
             background: var(--primary-hover);
-            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.4);
+        }
+
+        /* AUTH OVERLAY RESPONSIVE */
+        #auth-overlay .max-w-md {
+            margin: 1.5rem;
         }
     </style>
 </head>
 <body>
 
 <!-- AUTH OVERLAY -->
-<div id="auth-overlay" class="fixed inset-0 bg-slate-50 z-[100] flex items-center justify-center">
-    <div class="max-w-md w-full p-10 bg-white rounded-3xl shadow-xl border border-slate-100 text-center">
+<div id="auth-overlay" class="fixed inset-0 bg-slate-50 z-[200] flex items-center justify-center">
+    <div class="max-w-md w-full p-6 md:p-10 bg-white rounded-3xl shadow-xl border border-slate-100 text-center">
         <div class="mb-8">
             <div class="w-16 h-16 bg-blue-600 text-white flex items-center justify-center rounded-2xl mx-auto mb-6 text-2xl shadow-lg shadow-blue-200">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -225,11 +279,29 @@
     </div>
 </div>
 
+<!-- MOBILE HEADER -->
+<div class="mobile-header">
+    <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold">P</div>
+        <span class="font-bold tracking-tight text-slate-900">Pixup8k</span>
+    </div>
+    <button onclick="toggleSidebar()" class="w-10 h-10 flex items-center justify-center text-slate-600 text-xl">
+        <i class="fa-solid fa-bars-staggered" id="menu-icon"></i>
+    </button>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <!-- SIDEBAR -->
-<div class="sidebar">
-    <div class="flex items-center gap-3 mb-10 px-2">
-        <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-blue-100">P</div>
-        <span class="font-bold text-base tracking-tight text-slate-900">Pixup8k</span>
+<div id="sidebar" class="sidebar">
+    <div class="flex items-center justify-between mb-10 px-2">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-blue-100">P</div>
+            <span class="font-bold text-base tracking-tight text-slate-900">Pixup8k</span>
+        </div>
+        <!-- Close button for mobile -->
+        <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
     </div>
 
     <nav class="flex-1">
@@ -250,9 +322,9 @@
 
 <!-- MAIN CONTENT -->
 <div class="main-content">
-    <header class="flex justify-between items-center mb-10">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div>
-            <h2 id="page-title" class="text-3xl font-bold tracking-tight text-slate-900 capitalize">Dashboard</h2>
+            <h2 id="page-title" class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 capitalize">Dashboard</h2>
             <p class="text-sm text-slate-500 mt-1">System Overview & Data Sync</p>
         </div>
         <div id="connection-status" class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white px-5 py-2.5 border border-slate-200 rounded-full shadow-sm">
@@ -261,8 +333,8 @@
     </header>
 
     <!-- DASHBOARD TAB -->
-    <div id="tab-dashboard" class="tab-pane active space-y-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div id="tab-dashboard" class="tab-pane active space-y-6 md:space-y-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Number of Products</p>
@@ -283,7 +355,7 @@
                     <span id="click-growth-percent" class="growth-tag bg-emerald-50 text-emerald-600">Calculating...</span>
                 </div>
             </div>
-            <div class="glass-card">
+            <div class="glass-card sm:col-span-2 lg:col-span-1">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Global Queries</p>
                     <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs"><i class="fa-solid fa-magnifying-glass"></i></div>
@@ -299,18 +371,16 @@
             <div class="lg:col-span-3 glass-card">
                 <div class="flex justify-between items-center mb-8">
                     <h4 class="font-bold text-sm text-slate-800">Global Search Engagement</h4>
-                    <div class="flex gap-2">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Search Clusters</span>
-                    </div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Top Search Clusters</span>
                 </div>
-                <div class="h-[320px] relative">
+                <div class="h-[300px] md:h-[320px] relative">
                     <canvas id="searchCircleChart"></canvas>
                 </div>
             </div>
             <div class="lg:col-span-2 glass-card">
                 <div class="flex justify-between items-center mb-6">
                     <h4 class="font-bold text-sm text-slate-800">Latest Registry</h4>
-                    <button onclick="switchTab('inventory')" class="text-xs font-bold text-blue-600 hover:underline">inventory</button>
+                    <button onclick="switchTab('inventory')" class="text-xs font-bold text-blue-600 hover:underline">view all</button>
                 </div>
                 <div id="recent-grid" class="space-y-4"></div>
             </div>
@@ -319,13 +389,13 @@
 
     <!-- INVENTORY TAB -->
     <div id="tab-inventory" class="tab-pane">
-        <div class="mb-10 glass-card p-4">
+        <div class="mb-8 glass-card p-4">
             <div class="relative w-full">
                 <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" id="inventory-search-input" placeholder="Query Master Registry by ID, Title or Category..." class="input-field pl-12 py-4 border-none bg-slate-50">
+                <input type="text" id="inventory-search-input" placeholder="Query Master Registry..." class="input-field pl-12 py-4 border-none bg-slate-50">
             </div>
         </div>
-        <div id="full-inventory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        <div id="full-inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
 
     <!-- ANALYTICS TAB -->
@@ -333,21 +403,21 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 glass-card">
                 <div class="flex justify-between items-center mb-10">
-                    <h4 class="font-bold text-sm text-slate-800">Resource Engagement Analytics</h4>
-                    <span class="text-[10px] font-black uppercase text-slate-400">Total Engagement Points</span>
+                    <h4 class="font-bold text-sm text-slate-800">Engagement Analytics</h4>
+                    <span class="text-[10px] font-black uppercase text-slate-400 hidden sm:inline">Total Engagement Points</span>
                 </div>
-                <div class="h-[400px]">
+                <div class="h-[350px] md:h-[400px]">
                     <canvas id="clicksChart"></canvas>
                 </div>
             </div>
             <div class="space-y-8">
-                <div class="glass-card flex flex-col h-[400px]">
+                <div class="glass-card flex flex-col h-[350px] md:h-[400px]">
                     <h4 class="font-bold text-sm text-slate-800 mb-6 flex-shrink-0">User Inquiry Stream</h4>
                     <div id="questions-list" class="space-y-3 overflow-y-auto custom-scroll pr-2 flex-grow"></div>
                 </div>
                 <div class="glass-card">
-                    <h4 class="font-bold text-sm text-slate-800 mb-4">Supported Languages Usage</h4>
-                    <div class="h-[180px]">
+                    <h4 class="font-bold text-sm text-slate-800 mb-4 text-center lg:text-left">Languages Usage</h4>
+                    <div class="h-[200px]">
                         <canvas id="languagesChart"></canvas>
                     </div>
                 </div>
@@ -359,11 +429,10 @@
                 <h4 class="font-bold text-sm text-slate-800">Product Synchronization</h4>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="min-w-[600px] w-full">
                     <thead>
                         <tr class="text-[10px] uppercase font-bold text-slate-500">
                             <th class="p-4 text-left">Products</th>
-                            <!-- PRICE HISTORY REMOVED -->
                             <th class="p-4 text-left">Engagement</th>
                             <th class="p-4 text-right">Node Status</th>
                         </tr>
@@ -376,12 +445,12 @@
 
     <!-- ADD PRODUCT TAB -->
     <div id="tab-add-product" class="tab-pane max-w-5xl mx-auto">
-        <div class="glass-card p-10">
-            <div class="mb-12 border-b border-slate-100 pb-8">
-                <h3 class="text-2xl font-bold text-slate-900">Product Registration</h3>
+        <div class="glass-card p-6 md:p-10">
+            <div class="mb-10 border-b border-slate-100 pb-8">
+                <h3 class="text-xl md:text-2xl font-bold text-slate-900">Product Registration</h3>
                 <p class="text-sm text-slate-500 mt-2">Create a new product record for global distribution.</p>
             </div>
-            <form action="/Add_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <form action="/Add_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                 <input type="hidden" name="trending_score" value="0">
                 <div class="space-y-6">
                     <div>
@@ -434,8 +503,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="md:col-span-2 pt-8">
-                    <button class="btn-primary w-full py-4 text-sm tracking-widest uppercase shadow-lg shadow-blue-100">Confirm and Execute Registration</button>
+                <div class="md:col-span-2 pt-6">
+                    <button class="btn-primary w-full py-4 text-sm tracking-widest uppercase shadow-lg shadow-blue-100">Confirm Registration</button>
                 </div>
             </form>
         </div>
@@ -443,17 +512,17 @@
 </div>
 
 <!-- EDIT MODAL -->
-<div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-6">
+<div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div class="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <div>
-                <h3 class="font-bold text-xl text-slate-900">Edit Product</h3>
-                <p id="modal-sku-display" class="text-[11px] text-blue-600 font-bold tracking-widest uppercase mt-1">--</p>
+                <h3 class="font-bold text-lg md:text-xl text-slate-900">Edit Product</h3>
+                <p id="modal-sku-display" class="text-[10px] md:text-[11px] text-blue-600 font-bold tracking-widest uppercase mt-1">--</p>
             </div>
             <button onclick="closeEditModal()" class="w-10 h-10 rounded-full hover:bg-white hover:shadow-sm flex items-center justify-center text-slate-400 transition-all"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="p-10 overflow-y-auto flex-1">
-            <form id="edit-form" action="/update_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div class="p-6 md:p-10 overflow-y-auto flex-1">
+            <form id="edit-form" action="/update_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                 <input type="hidden" name="product_id" id="edit-id">
                 <div class="space-y-5">
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Product Information</label>
@@ -476,7 +545,7 @@
                         <input name="rating" id="edit-rating" class="input-field" placeholder="Rating">
                         <input name="trending_score" id="edit-trending" class="input-field" placeholder="Trending score">
                     </div>
-                    <div class="h-52 border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 overflow-hidden">
+                    <div class="h-48 md:h-52 border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 overflow-hidden">
                         <img id="edit-prev" class="max-h-full">
                     </div>
                     <button type="submit" class="btn-primary w-full uppercase tracking-widest text-xs py-5 mt-4">Commit System Changes</button>
@@ -513,6 +582,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// RESPONSIVE TOGGLE LOGIC
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+}
+
 async function sync() {
     try {
         const [d, a] = await Promise.all([fetch("/api/data"), fetch("/api/analytics")]);
@@ -529,6 +606,9 @@ async function sync() {
 }
 
 function switchTab(tabId) {
+    // Auto-close sidebar on mobile after clicking
+    if (window.innerWidth <= 1024) toggleSidebar();
+
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
     
@@ -538,6 +618,8 @@ function switchTab(tabId) {
 
     if(tabId === 'analytics') renderCharts();
     if(tabId === 'dashboard') renderDashboardCharts();
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function refreshDashboard() {
@@ -664,7 +746,7 @@ function renderCharts() {
     const entries = Object.entries(clickData).sort((a,b) => b[1]-a[1]).slice(0, 10);
     const labels = entries.map(([id, val]) => {
         const p = globalData.products.find(x => x._id === id);
-        return p ? p.title.substring(0, 14) : id.substring(0, 6);
+        return p ? p.title.substring(0, 12) + (p.title.length > 12 ? '..' : '') : id.substring(0, 6);
     });
     const values = entries.map(e => e[1]);
 
@@ -681,7 +763,7 @@ function renderCharts() {
                     backgroundColor: '#2563eb',
                     hoverBackgroundColor: '#1d4ed8',
                     borderRadius: 8,
-                    barThickness: 24
+                    barThickness: window.innerWidth < 640 ? 16 : 24
                 }]
             },
             options: {
@@ -695,7 +777,12 @@ function renderCharts() {
                     },
                     x: { 
                         grid: { display: false }, 
-                        ticks: { font: { size: 10, weight: '600' }, color: '#64748b' } 
+                        ticks: { 
+                            font: { size: 9, weight: '600' }, 
+                            color: '#64748b',
+                            maxRotation: 45,
+                            minRotation: 45
+                        } 
                     }
                 },
                 plugins: { 
@@ -727,7 +814,7 @@ function renderCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { 
-                        position: 'right',
+                        position: window.innerWidth < 640 ? 'bottom' : 'right',
                         labels: { font: { size: 10, weight: 'bold' }, boxWidth: 10, padding: 12 }
                     }
                 }
