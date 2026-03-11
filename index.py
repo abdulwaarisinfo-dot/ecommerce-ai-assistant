@@ -551,7 +551,7 @@ async def add_new_product(
     # Check DB connection
     if products_col is None:
         return templates.TemplateResponse(
-            "home.html",
+            "index.html",
             {"request": request, "message": "Database not connected"}
         )
 
@@ -575,12 +575,12 @@ async def delete_product(request: Request, id: str = Form(...)):
 
         if result.deleted_count == 0:
             return templates.TemplateResponse(
-                "home.html",
+                "index.html",
                 {"request": request, "message": "Product not found!"}
             )
 
         return templates.TemplateResponse(
-            "home.html",
+            "index.html",
             {"request": request, "message": "Product deleted successfully!"}
         )
 
@@ -627,7 +627,7 @@ async def update_product(
     # Check DB connection
     if products_col is None:
         return templates.TemplateResponse(
-            "home.html",
+            "index.html",
             {"request": request, "message": "Database not connected"}
         )
 
@@ -643,7 +643,7 @@ async def update_product(
         message = "Product updated successfully!"
 
     return templates.TemplateResponse(
-        "home.html",
+        "index.html",
         {"request": request, "message": message}
     )
 
