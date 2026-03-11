@@ -177,7 +177,7 @@
             font-weight: 700;
         }
 
-        /* FLOATING CHAT ICON STYLING */
+        /* NEW CHAT ICON STYLING */
         .floating-chat {
             position: fixed;
             bottom: 30px;
@@ -262,7 +262,7 @@
 
     <!-- DASHBOARD TAB -->
     <div id="tab-dashboard" class="tab-pane active space-y-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Number of Products</p>
@@ -271,6 +271,16 @@
                 <h3 id="stat-count" class="text-3xl font-bold text-slate-900">--</h3>
                 <div class="mt-4 flex items-center gap-2">
                     <span class="growth-tag bg-emerald-50 text-emerald-600">growth</span>
+                </div>
+            </div>
+            <div class="glass-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Interactions</p>
+                    <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-hand-pointer"></i></div>
+                </div>
+                <h3 id="stat-total-clicks" class="text-3xl font-bold text-slate-900">--</h3>
+                <div class="mt-4 flex items-center gap-2">
+                    <span id="click-growth-percent" class="growth-tag bg-emerald-50 text-emerald-600">Calculating...</span>
                 </div>
             </div>
             <div class="glass-card">
@@ -323,8 +333,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 glass-card">
                 <div class="flex justify-between items-center mb-10">
-                    <h4 class="font-bold text-sm text-slate-800">Resource Data Overview</h4>
-                    <span class="text-[10px] font-black uppercase text-slate-400">Node Sync Status</span>
+                    <h4 class="font-bold text-sm text-slate-800">Resource Engagement Analytics</h4>
+                    <span class="text-[10px] font-black uppercase text-slate-400">Total Engagement Points</span>
                 </div>
                 <div class="h-[400px]">
                     <canvas id="clicksChart"></canvas>
@@ -531,7 +541,11 @@ function switchTab(tabId) {
 function refreshDashboard() {
     const products = globalData.products || [];
     document.getElementById("stat-count").innerText = products.length;
+    document.getElementById("stat-total-clicks").innerText = globalAnalytics.total_clicks || 0;
     document.getElementById("stat-total-searches").innerText = globalAnalytics.total_searches || 0;
+
+    const growth = globalAnalytics.total_clicks > 0 ? (globalAnalytics.total_clicks / 500 * 100).toFixed(1) : 0;
+    document.getElementById("click-growth-percent").innerText = `+${growth}% efficiency`;
 
     const recent = [...products].slice(-4).reverse();
     document.getElementById("recent-grid").innerHTML = recent.map(p => `
@@ -660,7 +674,7 @@ function renderCharts() {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Sync Weight',
+                    label: 'Engagement Index',
                     data: values,
                     backgroundColor: '#2563eb',
                     hoverBackgroundColor: '#1d4ed8',
