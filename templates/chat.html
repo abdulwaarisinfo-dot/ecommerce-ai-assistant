@@ -154,7 +154,32 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
-        /* PRODUCT CAROUSEL FIX: PERSISTENT & CLEAN */
+        /* THINKING INDICATOR */
+        .thinking-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+            align-items: center;
+        }
+
+        .thinking-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-grey);
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .thinking-dot:nth-child(1) { animation-delay: -0.32s; }
+        .thinking-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        /* PRODUCT CAROUSEL */
         .carousel {
             display: flex;
             gap: 14px;
@@ -350,7 +375,6 @@
     </div>
 
     <div id="chatBox">
-        <!-- Initial Welcome Message -->
         <div class="msg-wrapper bot-wrapper">
             <div class="msg bot-msg">
                 Hello! I'm your Stellar Style assistant. How can I help you find the perfect outfit today?
@@ -376,19 +400,14 @@ const chatBox = document.getElementById("chatBox");
 const input = document.getElementById("userInput");
 const langSelect = document.getElementById("langSelect");
 const toast = document.getElementById("analyticsToast");
+let thinkingEl = null;
 
-/**
- * SHOW TOAST FOR ANALYTICS FEEDBACK
- */
 function showToast(msg) {
     toast.innerText = msg;
     toast.classList.add("show");
     setTimeout(() => { toast.classList.remove("show"); }, 3000);
 }
 
-/**
- * TRACKING LANGUAGE IN MONGO
- */
 async function trackLanguage(langCode) {
     const formData = new FormData();
     formData.append('language', langCode);
@@ -406,14 +425,14 @@ langSelect.addEventListener('change', (e) => {
     trackLanguage(e.target.value);
 });
 
-/**
- * WEBSOCKET CONNECTION (PRESERVED LOGIC)
- */
 function connectWS() {
     const protocol = location.protocol === "https:" ? "wss" : "ws";
     ws = new WebSocket(`${protocol}://${location.host}/ws/chat`);
 
     ws.onmessage = (event) => {
+        // Remove thinking indicator when response arrives
+        hideThinking();
+
         const data = JSON.parse(event.data);
         if(data.reply) appendBotMessage(data.reply);
         if(data.carousel && data.carousel.length > 0) renderProducts(data.carousel);
@@ -436,6 +455,33 @@ function createWrapper(text, isUser) {
     return wrapper;
 }
 
+/**
+ * SHOW THINKING INDICATOR
+ */
+function showThinking() {
+    if (thinkingEl) return;
+    thinkingEl = document.createElement("div");
+    thinkingEl.className = "msg-wrapper bot-wrapper";
+    thinkingEl.innerHTML = `
+        <div class="msg bot-msg">
+            <div class="thinking-indicator">
+                <div class="thinking-dot"></div>
+                <div class="thinking-dot"></div>
+                <div class="thinking-dot"></div>
+            </div>
+        </div>
+    `;
+    chatBox.appendChild(thinkingEl);
+    scrollBottom();
+}
+
+function hideThinking() {
+    if (thinkingEl) {
+        thinkingEl.remove();
+        thinkingEl = null;
+    }
+}
+
 function appendUserMessage(text) {
     chatBox.appendChild(createWrapper(text, true));
     scrollBottom();
@@ -446,9 +492,6 @@ function appendBotMessage(text) {
     scrollBottom();
 }
 
-/**
- * TRACKING CLICK IN MONGO (PRESERVED LOGIC)
- */
 async function openProductLink(url, productId) {
     if (!url || url === "#") return;
     if (productId) {
@@ -464,9 +507,6 @@ async function openProductLink(url, productId) {
     window.open(targetUrl, '_blank');
 }
 
-/**
- * RENDER PRODUCTS: PERSISTENT IN THE STREAM
- */
 function renderProducts(products) {
     const container = document.createElement("div");
     container.className = "msg-wrapper bot-wrapper";
@@ -495,16 +535,10 @@ function renderProducts(products) {
     scrollBottom();
 }
 
-/**
- * SUGGESTIONS: REMOVES OLD ONES ON NEW INTERACTION
- */
 function renderSuggestions(list) {
-    // Remove any existing suggestion chips before rendering new ones
     removeOldSuggestions();
-
     const container = document.createElement("div");
-    container.className = "suggestion-box"; // Container to identify them
-    
+    container.className = "suggestion-box"; 
     const chips = document.createElement("div");
     chips.className = "chip-container";
     
@@ -533,10 +567,12 @@ function sendMessage() {
     const text = input.value.trim();
     if (!text || ws.readyState !== WebSocket.OPEN) return;
     
-    // UI Logic: Remove old chips as soon as user sends a message
     removeOldSuggestions();
-    
     appendUserMessage(text);
+    
+    // Show thinking state
+    showThinking();
+    
     ws.send(text);
     input.value = "";
 }
