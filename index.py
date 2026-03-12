@@ -46,6 +46,13 @@ templates = Jinja2Templates(directory="templates")
 
 MONGO_URI = os.getenv("MONGO_URI", "")
 
+logger = logging.getLogger(__name__)
+
+PRODUCTS_DATA = []
+BOT_DATA = {}
+
+MONGO_URI = os.getenv("MONGO_URI", "")
+
 try:
     client = MongoClient(
         MONGO_URI,
@@ -53,42 +60,106 @@ try:
         tlsCAFile=certifi.where(),
         serverSelectionTimeoutMS=10000
     )
+
     db = client["ecommerce"]
-    # We use 'products' for inventory and 'bot_metadata' for settings/FAQ
+
+    # Collections
     products_col = db["products"]
     meta_col = db["bot_metadata"]
     analytics_col = db["analytics"]
-    
+
+    # Test connection
     client.admin.command("ping")
+
     logger.info("MongoDB connected successfully")
+
 except Exception as e:
     logger.error(f"MongoDB connection failed: {e}")
     products_col = None
     meta_col = None
+    analytics_col = None
+
+
+# ======================================================
+# REALTIME DATA LOADER
+# ======================================================
 
 def load_data_realtime():
-    """Reads latest products and bot configs from MongoDB."""
-    global PRODUCTS_DATA, BOT_DATA
-    if products_col is not None:
-        try:
-            # Sync Products
-            cursor = products_col.find({})
-            temp_products = list(cursor)
-            for p in temp_products:
-                if "_id" in p: p["_id"] = str(p["_id"])
-            PRODUCTS_DATA = temp_products
+    """
+    Reads latest products and bot configs from MongoDB
+    and syncs them to memory.
+    """
 
-            # Sync Bot Configs (FAQ, Suggestions, Messages)
-            # Assuming a single doc in bot_metadata holds the JSON config
-            meta = meta_col.find_one({"type": "config"})
-            if meta:
-                BOT_DATA = meta
-            else:
-                # Fallback to hardcoded logic if DB metadata is empty
-                BOT_DATA = {"initial_message": {"en": "Hello!"}, "faq": {}, "smart_suggestions": {}}
-                
-        except Exception as e:
-            logger.error(f"Auto-load Error: {e}")
+    global PRODUCTS_DATA, BOT_DATA
+
+    if products_col is None or meta_col is None:
+        logger.error("Database collections not initialized")
+        return
+
+    try:
+
+        # ------------------------------------------------
+        # PRODUCT SYNC
+        # ------------------------------------------------
+        products_cursor = products_col.find({})
+        temp_products = []
+
+        for product in products_cursor:
+
+            if "_id" in product:
+                product["_id"] = str(product["_id"])
+
+            temp_products.append(product)
+
+        PRODUCTS_DATA = temp_products
+
+
+        # ------------------------------------------------
+        # BOT METADATA SYNC
+        # ------------------------------------------------
+
+        # Try to load config document
+        meta = meta_col.find_one({"type": "config"})
+
+        # If not found, load first document
+        if not meta:
+            meta = meta_col.find_one({})
+
+        if meta:
+
+            if "_id" in meta:
+                meta["_id"] = str(meta["_id"])
+
+            BOT_DATA = meta
+
+        else:
+            # Safe fallback
+            BOT_DATA = {
+                "supported_languages": ["en"],
+                "initial_message": {
+                    "en": "Hello! How can I help you today?"
+                },
+                "faq": {},
+                "smart_suggestions": {}
+            }
+
+        logger.info(
+            f"Data Sync Completed | Products: {len(PRODUCTS_DATA)}"
+        )
+
+    except Exception as e:
+        logger.error(f"Auto-load Error: {e}")
+
+
+# ======================================================
+# OPTIONAL: AUTO LOAD ON STARTUP
+# ======================================================
+
+def init_database_sync():
+    """
+    Initialize database data on server start.
+    """
+    load_data_realtime()
 
 # ============================================================
 # ------------------ LANGUAGE DETECTION ----------------------
