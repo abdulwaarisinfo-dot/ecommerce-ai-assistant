@@ -270,7 +270,7 @@
 
     <!-- DASHBOARD TAB -->
     <div id="tab-dashboard" class="tab-pane active space-y-8">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Number of Products</p>
@@ -291,7 +291,17 @@
                     <span id="click-growth-percent" class="growth-tag bg-emerald-50 text-emerald-600">Calculating...</span>
                 </div>
             </div>
-            <div class="glass-card sm:col-span-2 lg:col-span-1">
+            <div class="glass-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Avg Product Price</p>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-dollar-sign"></i></div>
+                </div>
+                <h3 id="stat-avg-price" class="text-3xl font-bold text-slate-900">--</h3>
+                <div class="mt-4 flex items-center gap-2">
+                    <span class="growth-tag bg-slate-50 text-slate-400">Market Value</span>
+                </div>
+            </div>
+            <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Global Queries</p>
                     <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs"><i class="fa-solid fa-magnifying-glass"></i></div>
@@ -564,6 +574,15 @@ function refreshDashboard() {
     document.getElementById("stat-count").innerText = products.length;
     document.getElementById("stat-total-clicks").innerText = globalAnalytics.total_clicks || 0;
     document.getElementById("stat-total-searches").innerText = globalAnalytics.total_searches || 0;
+
+    // ADDED: Average Price Logic
+    if (products.length > 0) {
+        const totalValue = products.reduce((acc, p) => acc + (parseFloat(p.price) || 0), 0);
+        const avg = (totalValue / products.length).toFixed(2);
+        document.getElementById("stat-avg-price").innerText = `$${avg}`;
+    } else {
+        document.getElementById("stat-avg-price").innerText = "$0.00";
+    }
 
     const growth = globalAnalytics.total_clicks > 0 ? (globalAnalytics.total_clicks / 500 * 100).toFixed(1) : 0;
     document.getElementById("click-growth-percent").innerText = `+${growth}% efficiency`;
