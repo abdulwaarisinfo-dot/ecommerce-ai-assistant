@@ -15,8 +15,6 @@ import certifi
 from bson import ObjectId
 import random
 
-from analytics import AnalyticsManager
-
 # from analytics import router as analytics_router
 # from analytics import init_analytics, track_search, track_question, track_price_update
 
@@ -723,32 +721,91 @@ async def update_product(
     )
 
 # ===============================
-# INIT ANALYTICS MODULE
+# INIT ANALYTICS
 # ===============================
-analytics = AnalyticsManager(analytics_col)
+def init_analytics():
+    if analytics_col.count_documents({"type": "analytics"}) == 0:
+        analytics_col.insert_one({
+            "type": "analytics",
+            "total_searches": 0,
+            "total_clicks": 0,
+            "most_questions": {},
+            "product_search": {},
+            "product_clicks": {},
+            "price_updates": {},
+            "supported_languages": {}
+        })
+
+init_analytics()
+
+# ===============================
+# TRACK SEARCH
+# ===============================
+def track_search(query: str):
+    analytics_col.update_one(
+        {"type": "analytics"},
+        {"$inc": {"total_searches": 1, f"product_search.{query.lower()}": 1}}
+    )
+
+# ===============================
+# TRACK QUESTION
+# ===============================
+def track_question(question: str):
+    analytics_col.update_one(
+        {"type": "analytics"},
+        {"$inc": {f"most_questions.{question}": 1}}
+    )
 
 # ===============================
 # TRACK PRODUCT CLICK
 # ===============================
 @app.post("/track_click")
 async def track_click(product_id: str = Form(...)):
-    analytics.track_click(product_id)
+    analytics_col.update_one(
+        {"type": "analytics"},
+        {"$inc": {"total_clicks": 1, f"product_clicks.{product_id}": 1}}
+    )
     return {"status": "tracked"}
+
+# ===============================
+# TRACK PRICE UPDATE
+# ===============================
+def track_price_update(product_id: str):
+    analytics_col.update_one(
+        {"type": "analytics"},
+        {"$inc": {f"price_updates.{product_id}": 1}}
+    )
+
+# ===============================
+# GET ANALYTICS DATA (JSON)
+# ===============================
+@app.get("/api/analytics")
+async def get_analytics():
+    data = analytics_col.find_one({"type": "analytics"})
+    if "_id" in data:
+        data["_id"] = str(data["_id"])
+    return data
+
+# ======= TRACK LANGUAGES =========
+#  ---------------------------------
+#  ==================================
 
 # ===============================
 # TRACK LANGUAGE
 # ===============================
 @app.post("/track_language")
 async def track_language(language: str = Form(...)):
-    analytics.track_language(language)
-    return {"status": "tracked", "language": language}
+    """
+    Tracks which language users are using in the chatbot.
+    Example: en, ur, hi, ar
+    """
 
-# ===============================
-# GET ANALYTICS DATA
-# ===============================
-@app.get("/api/analytics")
-async def get_analytics():
-    return analytics.get_analytics()
+    analytics_col.update_one(
+        {"type": "analytics"},
+        {"$inc": {f"supported_languages.{language.lower()}": 1}}
+    )
+
+    return {"status": "tracked", "language": language}
 
 # ===============================
 # DASHBOARD PAGE
