@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+INDEX.HTML <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -211,20 +211,55 @@
 
 <!-- AUTH OVERLAY -->
 <div id="auth-overlay" class="fixed inset-0 bg-slate-50 z-[1000] flex items-center justify-center p-4">
+
     <div class="max-w-md w-full p-8 md:p-10 bg-white rounded-3xl shadow-xl border border-slate-100 text-center">
+
         <div class="mb-8">
             <div class="w-16 h-16 bg-blue-600 text-white flex items-center justify-center rounded-2xl mx-auto mb-6 text-2xl shadow-lg shadow-blue-200">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
+
             <h1 class="text-2xl font-bold text-slate-900">Security Terminal</h1>
             <p class="text-slate-500 text-sm mt-2">Authorized Personnel Only</p>
         </div>
+
+        <!-- AUTH FORM -->
         <form action="/password" method="POST" class="space-y-4">
-            <input type="password" name="password" required placeholder="Enter Security Key" class="input-field text-center tracking-[0.3em] font-bold border-2 focus:border-blue-500">
-            <button class="btn-primary w-full shadow-lg shadow-blue-100 py-4">Verify Identity</button>
+
+            <!-- USERNAME -->
+            <input 
+                type="text"
+                name="user_name"
+                required
+                placeholder="Enter Username"
+                class="input-field text-center tracking-widest font-bold border-2 focus:border-blue-500 w-full"
+            >
+
+            <!-- PASSWORD -->
+            <input 
+                type="password"
+                name="password"
+                required
+                placeholder="Enter Security Key"
+                class="input-field text-center tracking-[0.3em] font-bold border-2 focus:border-blue-500 w-full"
+            >
+
+            <!-- BUTTON -->
+            <button type="submit" class="btn-primary w-full shadow-lg shadow-blue-100 py-4">
+                Verify Identity
+            </button>
+
         </form>
-        <div id="error-msg" class="hidden mt-6 text-xs text-red-500 font-bold uppercase tracking-widest">Invalid Security Key</div>
+
+        <!-- ERROR MESSAGE -->
+        {% if status == "failed" %}
+        <div class="mt-6 text-xs text-red-500 font-bold uppercase tracking-widest">
+            Invalid Username or Security Key
+        </div>
+        {% endif %}
+
     </div>
+
 </div>
 
 <!-- SIDEBAR -->
