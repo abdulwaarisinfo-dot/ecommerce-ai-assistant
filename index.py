@@ -10,7 +10,7 @@ from typing import List, Dict, Any, Optional
 
 from langdetect import detect, DetectorFactory
 import asyncio
-import re
+import re 
 import certifi
 from bson import ObjectId
 import random
@@ -488,14 +488,35 @@ async def root():
 # =================================================
 
 @app.post("/password")
-async def password_root(request: Request, password: str = Form(...)):
-    # Retrieve the expected password from environment variables
+async def password_root(
+    request: Request,
+    password: str = Form(...),
+    user_name: str = Form(...)
+):
+
+    # Get credentials from environment
     expected_password = os.getenv("SECRET_PASSWORD")
-    
-    if password == expected_password:
-        return templates.TemplateResponse("index.html", {"request": request, "status": "success"})
+    expected_user = os.getenv("USER_NAME")
+
+    # Proper authentication check
+    if password == expected_password and user_name == expected_user:
+
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "status": "success"
+            }
+        )
+
     else:
-        return templates.TemplateResponse("index.html", {"request": request, "status": "failed"})
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "status": "failed"
+            }
+        )
  
 # ----------------------------------
  
