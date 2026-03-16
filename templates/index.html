@@ -210,51 +210,65 @@ INDEX.HTML <!DOCTYPE html>
 <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- AUTH OVERLAY -->
-<div id="auth-overlay" class="fixed inset-0 bg-slate-50 z-[1000] flex items-center justify-center p-4">
+<div id="auth-overlay" class="fixed inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-200 z-[1000] flex items-center justify-center p-6">
 
-    <div class="max-w-md w-full p-8 md:p-10 bg-white rounded-3xl shadow-xl border border-slate-100 text-center">
+    <div class="w-full max-w-md bg-white/80 backdrop-blur-xl border border-slate-200 shadow-2xl rounded-3xl p-10">
 
-        <div class="mb-8">
-            <div class="w-16 h-16 bg-blue-600 text-white flex items-center justify-center rounded-2xl mx-auto mb-6 text-2xl shadow-lg shadow-blue-200">
-                <i class="fa-solid fa-shield-halved"></i>
+        <!-- Logo -->
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl mx-auto shadow-lg">
+                <i class="fa-solid fa-lock"></i>
             </div>
 
-            <h1 class="text-2xl font-bold text-slate-900">Security Terminal</h1>
-            <p class="text-slate-500 text-sm mt-2">Authorized Personnel Only</p>
+            <h1 class="text-2xl font-bold text-slate-900 mt-6">
+                Secure Access
+            </h1>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Pixup8k Administrative Terminal
+            </p>
         </div>
 
-        <!-- AUTH FORM -->
-        <form action="/password" method="POST" class="space-y-4">
+        <!-- FORM -->
+        <form action="/password" method="POST" class="space-y-5">
 
-            <!-- USERNAME -->
-            <input 
-                type="text"
-                name="user_name"
-                required
-                placeholder="Enter Username"
-                class="input-field text-center tracking-widest font-bold border-2 focus:border-blue-500 w-full"
-            >
+            <div>
+                <label class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 block">
+                    Username
+                </label>
 
-            <!-- PASSWORD -->
-            <input 
-                type="password"
-                name="password"
-                required
-                placeholder="Enter Security Key"
-                class="input-field text-center tracking-[0.3em] font-bold border-2 focus:border-blue-500 w-full"
-            >
+                <input
+                    type="text"
+                    name="user_name"
+                    required
+                    placeholder="Enter username"
+                    class="input-field w-full"
+                >
+            </div>
 
-            <!-- BUTTON -->
-            <button type="submit" class="btn-primary w-full shadow-lg shadow-blue-100 py-4">
-                Verify Identity
+            <div>
+                <label class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 block">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    name="password"
+                    required
+                    placeholder="Enter password"
+                    class="input-field w-full"
+                >
+            </div>
+
+            <button type="submit" class="btn-primary w-full py-3 text-sm tracking-wide shadow-lg shadow-blue-100">
+                Authenticate
             </button>
 
         </form>
 
-        <!-- ERROR MESSAGE -->
         {% if status == "failed" %}
-        <div class="mt-6 text-xs text-red-500 font-bold uppercase tracking-widest">
-            Invalid Username or Security Key
+        <div class="mt-6 text-center text-xs font-bold text-red-500 tracking-widest uppercase">
+            Invalid Credentials
         </div>
         {% endif %}
 
