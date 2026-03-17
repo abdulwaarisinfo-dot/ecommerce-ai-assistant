@@ -13,59 +13,114 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
+        /* ============================================================
+           ROOT VARIABLES — LIGHT BLUE & WHITE THEME
+        ============================================================ */
         :root {
             --sidebar-width: 260px;
-            --primary: #2563eb; 
-            --primary-hover: #1d4ed8;
+            --primary: #add8e6;            /* Light Blue */
+            --primary-dark: #7ec8e3;       /* Darker light blue for hover */
+            --primary-text: #1a6b8a;       /* Dark text on light blue */
+            --primary-deep: #0e7490;       /* Deep accent */
             --accent: #64748b;
-            --bg-main: #f8fafc;
-            --bg-side: #ffffff;
+            --bg-main: #ffffff;            /* White background */
+            --bg-side: #add8e6;            /* Light blue sidebar */
             --border: #e2e8f0;
+            --card-gradient-start: #e8f6fa;
+            --card-gradient-end: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #475569;
         }
 
+        /* ============================================================
+           BASE STYLES — font sizes increased
+        ============================================================ */
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-main);
-            color: #0f172a;
+            color: var(--text-dark);
             margin: 0;
             overflow-x: hidden;
-            font-size: 14px;
+            font-size: 14px; /* body text 14px */
         }
+
+        h1, h2, h3, h4, h5, h6,
+        .heading-text {
+            font-size: 16px !important; /* headings 16px */
+            color: var(--text-dark);
+        }
+
+        h2 { font-size: 20px !important; }
+        h3 { font-size: 18px !important; }
 
         .mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* Sidebar Responsive Logic */
+        /* ============================================================
+           STICKY TOP HEADER
+        ============================================================ */
+        .sticky-top-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--primary);
+            border-bottom: 1px solid var(--primary-dark);
+            padding: 0.75rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(173,216,230,0.4);
+        }
+
+        .sticky-top-header h2,
+        .sticky-top-header p {
+            color: var(--primary-text) !important;
+        }
+
+        /* ============================================================
+           SIDEBAR — RIGHT SIDE, LIGHT BLUE
+        ============================================================ */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
             position: fixed;
-            left: 0;
+            right: 0;
             top: 0;
-            background: var(--bg-side);
-            border-right: 1px solid var(--border);
+            background: var(--bg-side); /* Light blue */
+            border-left: 1px solid var(--primary-dark);
             padding: 2.5rem 1.25rem;
             display: flex;
             flex-direction: column;
             z-index: 100;
-            transition: transform 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
         }
 
+        /* Sidebar collapsed state (slides RIGHT off screen) */
+        .sidebar.collapsed {
+            transform: translateX(100%);
+        }
+
+        /* Mobile: hidden by default, slides in from right */
         @media (max-width: 1024px) {
             .sidebar {
-                transform: translateX(-100%);
+                transform: translateX(100%);
             }
             .sidebar.open {
                 transform: translateX(0);
             }
+            .sidebar.collapsed {
+                transform: translateX(100%);
+            }
             .main-content {
-                margin-left: 0 !important;
+                margin-right: 0 !important;
                 padding: 1.5rem !important;
             }
             .sidebar-overlay {
                 display: none;
                 position: fixed;
                 inset: 0;
-                background: rgba(0,0,0,0.5);
+                background: rgba(173, 216, 230, 0.55); /* Translucent light blue overlay */
+                backdrop-filter: blur(2px);
                 z-index: 90;
             }
             .sidebar-overlay.active {
@@ -73,64 +128,117 @@
             }
         }
 
+        /* ============================================================
+           MAIN CONTENT — margin on right because sidebar is right
+        ============================================================ */
         .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 2.5rem 3rem;
+            margin-right: var(--sidebar-width);
+            margin-left: 0;
+            padding: 0;
             min-height: 100vh;
-            transition: margin-left 0.3s ease;
+            transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-main);
         }
 
+        .main-content.sidebar-collapsed {
+            margin-right: 0;
+        }
+
+        .main-content-inner {
+            padding: 2rem 2.5rem;
+        }
+
+        /* ============================================================
+           NAV ITEMS — hover uses light blue shadow
+        ============================================================ */
         .nav-item {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 12px 14px;
-            border-radius: 8px;
+            border-radius: 9999px; /* Pill style */
             font-size: 14px;
             font-weight: 500;
-            color: #64748b;
-            transition: all 0.2s ease;
+            color: var(--primary-text);
+            transition: all 0.25s ease;
             cursor: pointer;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .nav-item:hover {
-            color: var(--primary);
-            background: #f1f5f9;
+            color: var(--primary-deep);
+            background: transparent;
+            box-shadow: 0 4px 12px rgba(14, 116, 144, 0.25); /* Subtle light blue shadow */
+            transform: translateX(-2px);
         }
 
         .nav-item.active {
-            background: #eff6ff;
-            color: var(--primary);
-            font-weight: 600;
+            background: rgba(255,255,255,0.6);
+            color: var(--primary-deep);
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(14,116,144,0.2);
         }
 
+        /* ============================================================
+           GLASS CARD — soft light blue gradient, white content area
+        ============================================================ */
         .glass-card {
-            background: #ffffff;
-            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--card-gradient-start) 0%, var(--card-gradient-end) 60%);
+            border: 1px solid #c7e8f3;
             border-radius: 12px;
             padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            box-shadow: 0 1px 6px rgba(173,216,230,0.25);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
+        .glass-card:hover {
+            box-shadow: 0 4px 16px rgba(173,216,230,0.45);
+        }
+
+        /* Card header accent */
+        .card-header-accent {
+            background: var(--primary);
+            color: var(--primary-text);
+            border-radius: 8px 8px 0 0;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ============================================================
+           INPUT FIELDS
+        ============================================================ */
         .input-field {
             width: 100%;
             padding: 12px 14px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
+            border-radius: 9999px; /* Pill inputs */
+            border: 1px solid #a8d8ea;
             background: #ffffff;
             font-size: 14px;
             transition: all 0.2s;
             outline: none;
+            color: var(--text-dark);
         }
 
+        .input-field:focus {
+            border-color: var(--primary-deep);
+            box-shadow: 0 0 0 3px rgba(14,116,144,0.1);
+        }
+
+        textarea.input-field {
+            border-radius: 12px; /* Textarea keeps rectangular-ish */
+        }
+
+        /* ============================================================
+           BUTTONS — Pill style, light blue background
+        ============================================================ */
         .btn-primary {
             background: var(--primary);
-            color: white;
+            color: var(--primary-text);
             padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 9999px; /* Pill */
+            font-weight: 700;
             font-size: 14px;
             transition: all 0.2s;
             cursor: pointer;
@@ -141,17 +249,61 @@
             border: none;
         }
 
-        .btn-secondary {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            transition: all 0.2s;
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 14px rgba(173,216,230,0.6);
+            transform: translateY(-1px);
         }
 
+        .btn-secondary {
+            background: #ffffff;
+            border: 1px solid #a8d8ea;
+            padding: 10px 16px;
+            border-radius: 9999px; /* Pill */
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary-text);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            border-color: var(--primary-dark);
+        }
+
+        /* ============================================================
+           SIDEBAR TOGGLE BUTTON
+        ============================================================ */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            z-index: 200;
+            background: var(--primary);
+            color: var(--primary-text);
+            border: none;
+            border-radius: 8px 0 0 8px;
+            width: 24px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: -2px 0 8px rgba(173,216,230,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: var(--primary-dark);
+            width: 28px;
+        }
+
+        /* ============================================================
+           TAB PANES
+        ============================================================ */
         .tab-pane { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .tab-pane.active { display: block; }
 
@@ -160,130 +312,501 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* ============================================================
+           SCROLLBAR
+        ============================================================ */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
+        /* ============================================================
+           GROWTH TAGS & BADGES
+        ============================================================ */
         .growth-tag {
             font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 2px 8px;
+            border-radius: 9999px;
             font-weight: 700;
         }
 
+        /* Trending badge — light blue */
+        .trending-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--primary);
+            color: var(--primary-text);
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* ============================================================
+           FLOATING CHAT
+        ============================================================ */
         .floating-chat {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             right: 20px;
             width: 56px;
             height: 56px;
             background: var(--primary);
-            color: white;
+            color: var(--primary-text);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 10px 25px rgba(173,216,230,0.5);
             cursor: pointer;
             z-index: 1000;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-decoration: none;
         }
 
-        /* Mobile Header Toggle */
+        .floating-chat:hover {
+            transform: scale(1.1);
+            box-shadow: 0 14px 30px rgba(173,216,230,0.7);
+        }
+
+        /* ============================================================
+           FLOATING MOBILE MENU BUTTON
+        ============================================================ */
+        .floating-mobile-menu {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            background: var(--primary);
+            color: var(--primary-text);
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 8px 20px rgba(173,216,230,0.5);
+            cursor: pointer;
+            z-index: 999;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .floating-mobile-menu { display: flex; }
+            .floating-chat { bottom: 84px; }
+        }
+
+        /* ============================================================
+           MOBILE TOGGLE
+        ============================================================ */
         .mobile-toggle {
             display: none;
             cursor: pointer;
             padding: 8px;
             font-size: 20px;
-            color: #1e293b;
+            color: var(--primary-text);
         }
 
         @media (max-width: 1024px) {
             .mobile-toggle { display: block; }
         }
+
+        /* ============================================================
+           TOAST NOTIFICATION
+        ============================================================ */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--primary);
+            color: var(--primary-text);
+            border: 1px solid var(--primary-dark);
+            border-radius: 9999px;
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(173,216,230,0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn 0.35s ease, toastOut 0.35s ease 2.65s forwards;
+            max-width: 320px;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(40px); }
+        }
+
+        /* ============================================================
+           CONFIRMATION POPUP (Delete)
+        ============================================================ */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(173,216,230,0.25);
+            backdrop-filter: blur(4px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-overlay.active {
+            display: flex;
+        }
+
+        .confirm-box {
+            background: #fff;
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(173,216,230,0.5);
+            text-align: center;
+        }
+
+        .confirm-box h4 {
+            font-size: 16px !important;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        /* ============================================================
+           FOOTER
+        ============================================================ */
+        .site-footer {
+            background: #ffffff;
+            border-top: 1px solid #c7e8f3;
+            padding: 1.5rem 2.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .site-footer p, .site-footer a {
+            color: var(--primary-text);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .site-footer a:hover {
+            color: var(--primary-deep);
+            text-decoration: underline;
+        }
+
+        /* ============================================================
+           DASHBOARD GRID — 3 columns on large screens
+        ============================================================ */
+        .dashboard-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .dashboard-stat-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard-stat-grid { grid-template-columns: repeat(3, 1fr); } /* 3 columns */
+        }
+
+        /* ============================================================
+           INVENTORY CARDS — spacing on mobile
+        ============================================================ */
+        @media (max-width: 640px) {
+            #full-inventory-grid .glass-card {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* ============================================================
+           IMAGE PREVIEW in form
+        ============================================================ */
+        .img-preview-zone {
+            border: 2px dashed #a8d8ea;
+            border-radius: 16px;
+            background: #f0faff;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .img-preview-zone:hover {
+            border-color: var(--primary-deep);
+            background: #e0f4fb;
+        }
+
+        .img-preview-zone img {
+            max-height: 160px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* ============================================================
+           ANALYTICS — search filter
+        ============================================================ */
+        .analytics-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1px solid var(--primary);
+            border-radius: 9999px;
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .analytics-search input {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            background: transparent;
+            width: 180px;
+            color: var(--text-dark);
+        }
+
+        /* ============================================================
+           CHART TOOLTIP CUSTOMIZATION (via Chart.js)
+        ============================================================ */
+
+        /* ============================================================
+           MODAL — light blue header, white form
+        ============================================================ */
+        .modal-header-lb {
+            background: var(--primary);
+            border-radius: 0;
+        }
+
+        /* ============================================================
+           RESPONSIVE: Hide less important sections on mobile
+        ============================================================ */
+        @media (max-width: 640px) {
+            .hide-mobile { display: none !important; }
+            .card-text-scale { font-size: clamp(0.65rem, 2.5vw, 0.875rem); }
+            .stat-number { font-size: clamp(1.5rem, 6vw, 2.5rem) !important; }
+        }
+
+        /* ============================================================
+           AUTH OVERLAY
+        ============================================================ */
+        #auth-overlay input.input-field {
+            border-radius: 9999px;
+        }
+
+        /* ============================================================
+           CLICK CHART TOOLTIPS (styled light blue)
+        ============================================================ */
+        .chartjs-tooltip-lb {
+            background: var(--primary) !important;
+            color: var(--primary-text) !important;
+        }
+
+        /* ============================================================
+           DYNAMIC TEXT SCALE in cards
+        ============================================================ */
+        .card-title {
+            font-size: clamp(0.7rem, 2vw, 0.875rem);
+            font-weight: 700;
+        }
+
+        /* ============================================================
+           SIDEBAR LOGO AREA
+        ============================================================ */
+        .sidebar-logo-text {
+            color: var(--primary-text) !important;
+            font-weight: 800 !important;
+        }
+
+        /* ============================================================
+           SIDEBAR OPEN ANIMATION
+        ============================================================ */
+        @keyframes sidebarSlideIn {
+            from { transform: translateX(100%); opacity: 0.5; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .sidebar.open {
+            animation: sidebarSlideIn 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* ============================================================
+           CLICK CHART BARS TOOLTIP override
+        ============================================================ */
+        .clicks-bar-tooltip {
+            background: var(--primary);
+            color: var(--primary-text);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 9999px;
+        }
+
+        /* ============================================================
+           NOTIFICATION CARD (clicks drop warning)
+        ============================================================ */
+        .click-drop-warning {
+            display: none;
+            background: #fff;
+            border: 1.5px solid var(--primary);
+            border-left: 4px solid var(--primary-deep);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--primary-text);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .click-drop-warning.show {
+            display: flex;
+        }
+
+        /* ============================================================
+           TOP SELLING PRODUCT CARD
+        ============================================================ */
+        .top-selling-card {
+            background: #ffffff;
+            border: 1px solid #c7e8f3;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .top-selling-card .card-header-accent {
+            background: var(--primary);
+            color: var(--primary-text);
+            padding: 10px 18px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        /* ============================================================
+           VALIDATION STYLES
+        ============================================================ */
+        .input-field.error {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+        }
+
+        .field-error-msg {
+            color: #ef4444;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: none;
+        }
+
+        /* ============================================================
+           CHART ANALYTICS FILTER BAR
+        ============================================================ */
+        .analytics-filter-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
 <body>
 
-<!-- MOBILE OVERLAY -->
+<!-- TOAST CONTAINER -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- MOBILE OVERLAY (translucent light blue) -->
 <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-<!-- AUTH OVERLAY -->
-<div id="auth-overlay" class="fixed inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-200 z-[1000] flex items-center justify-center p-6">
+<!-- CONFIRM DELETE POPUP -->
+<div id="confirm-overlay" class="confirm-overlay">
+    <div class="confirm-box">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-trash text-xl" style="color:var(--primary-text)"></i>
+        </div>
+        <h4>Delete Product?</h4>
+        <p class="text-sm text-slate-500 mb-6 mt-2">This action will permanently remove the product from the registry.</p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="cancelDelete()" class="btn-secondary px-6">Cancel</button>
+            <button onclick="executeDelete()" class="btn-primary px-6">Delete</button>
+        </div>
+    </div>
+</div>
 
-    <div class="w-full max-w-md bg-white/80 backdrop-blur-xl border border-slate-200 shadow-2xl rounded-3xl p-10">
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay" class="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-sky-100 z-[1000] flex items-center justify-center p-6">
+    <div class="w-full max-w-md bg-white/90 backdrop-blur-xl border border-blue-200 shadow-2xl rounded-3xl p-10">
 
         <!-- Logo -->
         <div class="text-center mb-10">
-            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl mx-auto shadow-lg">
-                <i class="fa-solid fa-lock"></i>
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-xl mx-auto shadow-lg" style="background:var(--primary)">
+                <i class="fa-solid fa-lock" style="color:var(--primary-text)"></i>
             </div>
-
-            <h1 class="text-2xl font-bold text-slate-900 mt-6">
-                Secure Access
-            </h1>
-
-            <p class="text-sm text-slate-500 mt-2">
-                Pixup8k Administrative Terminal
-            </p>
+            <h1 class="text-2xl font-bold text-slate-900 mt-6" style="font-size:22px!important">Secure Access</h1>
+            <p class="text-sm text-slate-500 mt-2">Pixup8k Administrative Terminal</p>
         </div>
 
         <!-- FORM -->
         <form action="/password" method="POST" class="space-y-5">
-
             <div>
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 block">
-                    Username
-                </label>
-
-                <input
-                    type="text"
-                    name="user_name"
-                    required
-                    placeholder="Enter username"
-                    class="input-field w-full"
-                >
+                <label class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 block">Username</label>
+                <input type="text" name="user_name" required placeholder="Enter username" class="input-field w-full">
             </div>
-
             <div>
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 block">
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    name="password"
-                    required
-                    placeholder="Enter password"
-                    class="input-field w-full"
-                >
+                <label class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 block">Password</label>
+                <input type="password" name="password" required placeholder="Enter password" class="input-field w-full">
             </div>
-
-            <button type="submit" class="btn-primary w-full py-3 text-sm tracking-wide shadow-lg shadow-blue-100">
-                Authenticate
+            <button type="submit" class="btn-primary w-full py-3 text-sm tracking-wide shadow-lg" style="box-shadow:0 6px 20px rgba(173,216,230,0.4)">
+                <i class="fa-solid fa-right-to-bracket"></i> Authenticate
             </button>
-
         </form>
 
         {% if status == "failed" %}
-        <div class="mt-6 text-center text-xs font-bold text-red-500 tracking-widest uppercase">
-            Invalid Credentials
+        <div class="mt-6 text-center text-xs font-bold text-red-500 tracking-widest uppercase" id="error-msg">
+            <i class="fa-solid fa-circle-exclamation mr-1"></i> Invalid Credentials
         </div>
         {% endif %}
 
     </div>
-
 </div>
 
-<!-- SIDEBAR -->
+<!-- ============================================================
+     SIDEBAR — RIGHT SIDE, LIGHT BLUE
+============================================================ -->
 <div id="sidebar" class="sidebar">
     <div class="flex items-center justify-between mb-10 px-2">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-blue-100">P</div>
-            <span class="font-bold text-base tracking-tight text-slate-900">Pixup8k</span>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg shadow-md" style="background:rgba(255,255,255,0.6);color:var(--primary-text)">P</div>
+            <span class="font-bold text-base tracking-tight sidebar-logo-text">Pixup8k</span>
         </div>
-        <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <button onclick="toggleSidebar()" class="lg:hidden p-2" style="color:var(--primary-text)">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
     </div>
 
     <nav class="flex-1 space-y-1">
@@ -300,72 +823,131 @@
             <i class="fa-solid fa-plus w-5 text-center"></i> New Entry
         </div>
     </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="mt-auto pt-6 border-t" style="border-color:rgba(14,116,144,0.2)">
+        <p class="text-xs text-center" style="color:var(--primary-text);opacity:0.7">&copy; 2025 Pixup8k</p>
+    </div>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="main-content">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<!-- SIDEBAR COLLAPSE TOGGLE (desktop) -->
+<button id="sidebar-toggle-btn" class="sidebar-toggle-btn lg:flex hidden" onclick="desktopToggleSidebar()" title="Toggle Sidebar">
+    <i id="sidebar-toggle-icon" class="fa-solid fa-chevron-right"></i>
+</button>
+
+<!-- ============================================================
+     MAIN CONTENT
+============================================================ -->
+<div class="main-content" id="main-content">
+
+    <!-- STICKY TOP HEADER -->
+    <div class="sticky-top-header">
         <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar()" class="mobile-toggle lg:hidden"><i class="fa-solid fa-bars-staggered"></i></button>
+            <button onclick="toggleSidebar()" class="mobile-toggle">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
             <div>
-                <h2 id="page-title" class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 capitalize">Dashboard</h2>
-                <p class="text-sm text-slate-500">System Overview & Data Sync</p>
+                <h2 id="page-title" class="font-bold tracking-tight capitalize" style="font-size:18px!important;color:var(--primary-text)!important">Dashboard</h2>
+                <p class="text-xs" style="color:var(--primary-text);opacity:0.75">System Overview & Data Sync</p>
             </div>
         </div>
-        <div id="connection-status" class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white px-5 py-2.5 border border-slate-200 rounded-full shadow-sm">
+        <div id="connection-status" class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-white/60 rounded-full" style="color:var(--primary-text)">
             <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Syncing Node...
         </div>
-    </header>
+    </div>
+
+    <!-- CLICK DROP WARNING NOTIFICATION -->
+    <div id="click-drop-warning" class="click-drop-warning mx-6 mt-4">
+        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+        <span>Alert: Total engagement clicks have dropped below 100 in the last 24 hours. Review your product listings.</span>
+    </div>
+
+    <div class="main-content-inner">
 
     <!-- DASHBOARD TAB -->
     <div id="tab-dashboard" class="tab-pane active space-y-8">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- Stats Grid — 3 columns on lg -->
+        <div class="dashboard-stat-grid">
             <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Number of Products</p>
-                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-layer-group"></i></div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Number of Products</p>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:rgba(173,216,230,0.3);color:var(--primary-text)">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
                 </div>
-                <h3 id="stat-count" class="text-3xl font-bold text-slate-900">--</h3>
+                <h3 id="stat-count" class="stat-number text-3xl font-bold text-slate-900">--</h3>
                 <div class="mt-4 flex items-center gap-2">
                     <span class="growth-tag bg-emerald-50 text-emerald-600">growth</span>
                 </div>
             </div>
+
             <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Interactions</p>
-                    <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-hand-pointer"></i></div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Active Interactions</p>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:rgba(173,216,230,0.3);color:var(--primary-text)">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                    </div>
                 </div>
-                <h3 id="stat-total-clicks" class="text-3xl font-bold text-slate-900">--</h3>
+                <h3 id="stat-total-clicks" class="stat-number text-3xl font-bold text-slate-900">--</h3>
                 <div class="mt-4 flex items-center gap-2">
                     <span id="click-growth-percent" class="growth-tag bg-emerald-50 text-emerald-600">Calculating...</span>
                 </div>
             </div>
+
             <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Avg Product Price</p>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-dollar-sign"></i></div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Avg Product Price</p>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:rgba(173,216,230,0.3);color:var(--primary-text)">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
                 </div>
-                <h3 id="stat-avg-price" class="text-3xl font-bold text-slate-900">--</h3>
+                <h3 id="stat-avg-price" class="stat-number text-3xl font-bold text-slate-900">--</h3>
                 <div class="mt-4 flex items-center gap-2">
-                    <span class="growth-tag bg-slate-50 text-slate-400">Market Value</span>
+                    <span class="growth-tag text-xs" style="background:var(--primary);color:var(--primary-text)">Market Value</span>
                 </div>
             </div>
+
             <div class="glass-card">
                 <div class="flex justify-between items-start mb-4">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Global Queries</p>
-                    <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Global Queries</p>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:rgba(173,216,230,0.3);color:var(--primary-text)">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
                 </div>
-                <h3 id="stat-total-searches" class="text-3xl font-bold text-slate-900">--</h3>
+                <h3 id="stat-total-searches" class="stat-number text-3xl font-bold text-slate-900">--</h3>
                 <div class="mt-4 flex items-center gap-2">
-                    <span class="growth-tag bg-blue-50 text-blue-600">Stable Node</span>
+                    <span class="growth-tag text-xs" style="background:var(--primary);color:var(--primary-text)">Stable Node</span>
+                </div>
+            </div>
+
+            <!-- TOP SELLING PRODUCT CARD -->
+            <div class="top-selling-card lg:col-span-2">
+                <div class="card-header-accent flex items-center gap-2">
+                    <i class="fa-solid fa-trophy"></i> Top Selling Product
+                </div>
+                <div id="top-selling-content" class="p-4 flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-white border border-blue-100 flex items-center justify-center flex-shrink-0">
+                        <img id="top-product-img" src="" class="max-h-full object-contain hidden">
+                        <i id="top-product-placeholder" class="fa-solid fa-star text-2xl" style="color:var(--primary)"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p id="top-product-title" class="font-bold text-sm text-slate-900 truncate">Loading...</p>
+                        <p id="top-product-meta" class="text-xs mt-1" style="color:var(--primary-text)">--</p>
+                        <div class="mt-2">
+                            <span id="top-product-score" class="growth-tag text-xs" style="background:var(--primary);color:var(--primary-text)">Trending</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Charts Row -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
             <div class="lg:col-span-3 glass-card">
                 <div class="flex justify-between items-center mb-8">
                     <h4 class="font-bold text-sm text-slate-800">Global Search Engagement</h4>
+                    <span class="text-[10px] font-bold uppercase tracking-widest hide-mobile" style="color:var(--primary-text)">Last 5 Searches</span>
                 </div>
                 <div class="h-[280px] md:h-[320px] relative">
                     <canvas id="searchCircleChart"></canvas>
@@ -374,7 +956,7 @@
             <div class="lg:col-span-2 glass-card">
                 <div class="flex justify-between items-center mb-6">
                     <h4 class="font-bold text-sm text-slate-800">Latest Registry</h4>
-                    <button onclick="switchTab('inventory')" class="text-xs font-bold text-blue-600 hover:underline">View All</button>
+                    <button onclick="switchTab('inventory')" class="text-xs font-bold hover:underline" style="color:var(--primary-text)">View All</button>
                 </div>
                 <div id="recent-grid" class="space-y-4"></div>
             </div>
@@ -385,8 +967,10 @@
     <div id="tab-inventory" class="tab-pane">
         <div class="mb-8 glass-card !p-0 overflow-hidden">
             <div class="relative w-full">
-                <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" id="inventory-search-input" placeholder="Query Master Registry by ID, Title or Category..." class="input-field pl-12 py-5 border-none bg-white">
+                <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-sm" style="color:var(--primary-text)"></i>
+                <input type="text" id="inventory-search-input" placeholder="Query Master Registry by ID, Title or Category..."
+                    class="input-field pl-12 py-5 !rounded-none border-none bg-white"
+                    style="border-radius:12px!important">
             </div>
         </div>
         <div id="full-inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
@@ -394,11 +978,22 @@
 
     <!-- ANALYTICS TAB -->
     <div id="tab-analytics" class="tab-pane space-y-8">
+
+        <!-- Analytics Filter Bar -->
+        <div class="analytics-filter-bar">
+            <div class="analytics-search">
+                <i class="fa-solid fa-filter" style="color:var(--primary-text)"></i>
+                <input type="text" id="analytics-search-input" placeholder="Filter charts by product name..." oninput="filterAnalytics(this.value)">
+                <button onclick="filterAnalytics('')" class="text-xs font-bold" style="color:var(--primary-text)"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <span class="text-xs font-semibold" style="color:var(--primary-text)">Top engagement products shown</span>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 glass-card overflow-hidden">
                 <div class="flex justify-between items-center mb-10">
                     <h4 class="font-bold text-sm text-slate-800">Resource Engagement Analytics</h4>
-                    <span class="hidden sm:inline text-[10px] font-black uppercase text-slate-400">Total Engagement Points</span>
+                    <span class="hide-mobile text-[10px] font-black uppercase" style="color:var(--primary-text)">Total Engagement Points</span>
                 </div>
                 <div class="h-[300px] md:h-[400px]">
                     <canvas id="clicksChart"></canvas>
@@ -409,7 +1004,7 @@
                     <h4 class="font-bold text-sm text-slate-800 mb-6 flex-shrink-0">User Inquiry Stream</h4>
                     <div id="questions-list" class="space-y-3 overflow-y-auto custom-scroll pr-2 flex-grow"></div>
                 </div>
-                <div class="glass-card">
+                <div class="glass-card hide-mobile">
                     <h4 class="font-bold text-sm text-slate-800 mb-4">Supported Languages Usage</h4>
                     <div class="h-[180px]">
                         <canvas id="languagesChart"></canvas>
@@ -419,16 +1014,16 @@
         </div>
 
         <div class="glass-card overflow-hidden !p-0">
-            <div class="p-6 border-b border-slate-100">
+            <div class="p-6 border-b" style="border-color:#c7e8f3">
                 <h4 class="font-bold text-sm text-slate-800">Product Synchronization</h4>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
-                        <tr class="text-[10px] uppercase font-bold text-slate-500">
-                            <th class="p-5 text-left bg-slate-50/50">Products</th>
-                            <th class="p-5 text-left bg-slate-50/50 hidden">Engagement</th>
-                            <th class="p-5 text-right bg-slate-50/50">Node Status</th>
+                        <tr class="text-[10px] uppercase font-bold" style="color:var(--primary-text)">
+                            <th class="p-5 text-left" style="background:#f0faff">Products</th>
+                            <th class="p-5 text-left hide-mobile" style="background:#f0faff">Engagement</th>
+                            <th class="p-5 text-right" style="background:#f0faff">Node Status</th>
                         </tr>
                     </thead>
                     <tbody id="analytics-tbody" class="text-sm"></tbody>
@@ -440,90 +1035,163 @@
     <!-- ADD PRODUCT TAB -->
     <div id="tab-add-product" class="tab-pane max-w-5xl mx-auto">
         <div class="glass-card p-6 md:p-10">
-            <div class="mb-10 border-b border-slate-100 pb-8">
-                <h3 class="text-2xl font-bold text-slate-900">Product Registration</h3>
+            <div class="mb-10 border-b pb-8" style="border-color:#c7e8f3">
+                <h3 class="text-2xl font-bold text-slate-900" style="font-size:18px!important">Product Registration</h3>
                 <p class="text-sm text-slate-500 mt-2">Create a new product record for global distribution.</p>
             </div>
-            <form action="/Add_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+            <form id="add-product-form" action="/Add_product" method="POST" onsubmit="return handleAddProduct(event)" class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                 <input type="hidden" name="trending_score" value="0">
                 <div class="space-y-6">
                     <div>
-                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Product Name</label>
+                        <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Product Name</label>
                         <input name="title" placeholder="e.g. Premium Tech Fleece" required class="input-field">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Product ID</label>
+                            <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Product ID</label>
                             <input name="id" placeholder="L-X01" required class="input-field">
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Category</label>
-                            <input name="category" placeholder="Apparel" required class="input-field">
+                            <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Category</label>
+                            <!-- Category dropdown instead of free text -->
+                            <select name="category" required class="input-field">
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="Apparel">Apparel</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Footwear">Footwear</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Home & Living">Home & Living</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Beauty">Beauty</option>
+                                <option value="Books">Books</option>
+                                <option value="Toys">Toys</option>
+                                <option value="Other">Other</option>
+                            </select>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Price ($)</label>
-                            <input type="number" name="price" required class="input-field">
+                            <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Price ($)</label>
+                            <!-- Price: positive numbers only -->
+                            <input type="number" name="price" required min="0.01" step="0.01"
+                                class="input-field" id="add-price" oninput="validatePrice(this)"
+                                placeholder="0.00">
+                            <p class="field-error-msg" id="price-error">Price must be a positive number.</p>
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Material</label>
+                            <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Material</label>
                             <input name="material" placeholder="e.g. Cotton" class="input-field">
                         </div>
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Product Details</label>
+                        <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Product Details</label>
                         <textarea name="description" class="input-field h-28 resize-none"></textarea>
                     </div>
                 </div>
                 <div class="space-y-6">
                     <div>
-                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">image linK</label>
-                        <input name="image_link" required class="input-field" oninput="previewImg(this.value, 'add-prev')">
+                        <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Image Link</label>
+                        <input name="image_link" id="add-image-link" required class="input-field"
+                            placeholder="https://..." oninput="previewImg(this.value, 'add-prev')">
+                    </div>
+                    <!-- File upload for image -->
+                    <div>
+                        <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">
+                            Upload Image File <span class="text-slate-400 normal-case font-normal">(or use link above)</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <div class="btn-secondary flex items-center gap-2 text-xs whitespace-nowrap">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Choose File
+                            </div>
+                            <input type="file" accept="image/*" class="hidden" id="add-file-upload" onchange="handleFileUpload(this)">
+                            <span id="file-name-display" class="text-xs text-slate-400">No file selected</span>
+                        </label>
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold uppercase text-slate-500 mb-2 block">Page Link</label>
-                        <input name="image" required class="input-field">
+                        <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Page Link</label>
+                        <input name="image" required class="input-field" placeholder="https://...">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <input name="color" placeholder="Color" class="input-field">
-                        <input name="rating" placeholder="Rating (0.0)" class="input-field">
+                        <div>
+                            <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Color</label>
+                            <input name="color" placeholder="Color" class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold uppercase mb-2 block" style="color:var(--primary-text)">Rating (0–5)</label>
+                            <!-- Rating: 0 to 5, step 0.1 -->
+                            <input name="rating" id="add-rating" type="number" min="0" max="5" step="0.1"
+                                placeholder="0.0" class="input-field" oninput="validateRating(this)">
+                            <p class="field-error-msg" id="rating-error">Rating must be between 0 and 5.</p>
+                        </div>
                     </div>
-                    <div class="h-48 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 overflow-hidden relative">
+                    <!-- Live image preview -->
+                    <div class="img-preview-zone" onclick="document.getElementById('add-file-upload').click()">
                         <img id="add-prev" class="max-h-full hidden z-10">
                         <div id="add-prev-txt" class="text-center">
-                            <i class="fa-solid fa-image text-slate-300 text-3xl mb-2"></i>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Pending</p>
+                            <i class="fa-solid fa-image text-3xl mb-2" style="color:var(--primary)"></i>
+                            <p class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Live Preview</p>
+                            <p class="text-[9px] mt-1 text-slate-400">Paste a link above or upload a file</p>
                         </div>
                     </div>
                 </div>
                 <div class="md:col-span-2 pt-8">
-                    <button class="btn-primary w-full py-4 text-sm tracking-widest uppercase shadow-lg shadow-blue-100">Confirm and Execute Registration</button>
+                    <button type="submit" class="btn-primary w-full py-4 text-sm tracking-widest uppercase">
+                        <i class="fa-solid fa-rocket mr-2"></i>Confirm and Execute Registration
+                    </button>
                 </div>
             </form>
         </div>
     </div>
-</div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer mt-12">
+        <p>&copy; 2025 <strong>Pixup8k</strong> — LuxeStore Professional Ops</p>
+        <div class="flex gap-6 flex-wrap">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">Support</a>
+            <a href="/">Dashboard</a>
+        </div>
+    </footer>
+
+    </div><!-- /main-content-inner -->
+</div><!-- /main-content -->
 
 <!-- EDIT MODAL -->
-<div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] hidden flex items-center justify-center p-4 md:p-6">
+<div id="edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[2000] hidden flex items-center justify-center p-4 md:p-6">
     <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-        <div class="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <!-- Modal Header — light blue -->
+        <div class="p-6 md:p-8 border-b flex justify-between items-center modal-header-lb" style="border-color:var(--primary-dark)">
             <div>
-                <h3 class="font-bold text-xl text-slate-900">Edit Product</h3>
-                <p id="modal-sku-display" class="text-[11px] text-blue-600 font-bold tracking-widest uppercase mt-1">--</p>
+                <h3 class="font-bold text-xl" style="color:var(--primary-text);font-size:18px!important">Edit Product</h3>
+                <p id="modal-sku-display" class="text-[11px] font-bold tracking-widest uppercase mt-1" style="color:var(--primary-text);opacity:0.75">--</p>
             </div>
-            <button onclick="closeEditModal()" class="w-10 h-10 rounded-full hover:bg-white hover:shadow-sm flex items-center justify-center text-slate-400 transition-all"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeEditModal()" class="w-10 h-10 rounded-full bg-white/40 hover:bg-white flex items-center justify-center transition-all" style="color:var(--primary-text)">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
         <div class="p-6 md:p-10 overflow-y-auto flex-1">
             <form id="edit-form" action="/update_product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                 <input type="hidden" name="product_id" id="edit-id">
                 <div class="space-y-5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Product Information</label>
+                    <label class="text-[10px] font-bold uppercase" style="color:var(--primary-text)">Product Information</label>
                     <input name="title" id="edit-title" class="input-field" placeholder="Title">
                     <div class="grid grid-cols-2 gap-4">
-                        <input name="category" id="edit-category" class="input-field" placeholder="category">
-                        <input name="price" type="number" id="edit-price" class="input-field" placeholder="Price">
+                        <!-- Edit category dropdown -->
+                        <select name="category" id="edit-category" class="input-field">
+                            <option value="">Select Category</option>
+                            <option value="Apparel">Apparel</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Footwear">Footwear</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Home & Living">Home & Living</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Beauty">Beauty</option>
+                            <option value="Books">Books</option>
+                            <option value="Toys">Toys</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input name="price" type="number" min="0.01" step="0.01" id="edit-price" class="input-field" placeholder="Price" oninput="validatePrice(this)">
                     </div>
                     <textarea name="description" id="edit-description" class="input-field h-40" placeholder="Product Description"></textarea>
                     <div class="grid grid-cols-2 gap-4">
@@ -532,17 +1200,20 @@
                     </div>
                 </div>
                 <div class="space-y-5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Media & Logic</label>
+                    <label class="text-[10px] font-bold uppercase" style="color:var(--primary-text)">Media & Logic</label>
                     <input name="image_link" id="edit-image-link" class="input-field" placeholder="Image Link" oninput="previewImg(this.value, 'edit-prev')">
                     <input name="image" id="edit-image" class="input-field" placeholder="Page link">
                     <div class="grid grid-cols-2 gap-4">
-                        <input name="rating" id="edit-rating" class="input-field" placeholder="Rating">
+                        <input name="rating" id="edit-rating" type="number" min="0" max="5" step="0.1" class="input-field" placeholder="Rating (0–5)">
                         <input name="trending_score" id="edit-trending" class="input-field" placeholder="Trending score">
                     </div>
-                    <div class="h-52 border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 overflow-hidden">
-                        <img id="edit-prev" class="max-h-full">
+                    <div class="img-preview-zone" style="height:13rem">
+                        <img id="edit-prev" class="max-h-full hidden">
+                        <p id="edit-prev-txt" class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">No Preview</p>
                     </div>
-                    <button type="submit" class="btn-primary w-full uppercase tracking-widest text-xs py-5 mt-4">Commit System Changes</button>
+                    <button type="submit" class="btn-primary w-full uppercase tracking-widest text-xs py-5 mt-4">
+                        <i class="fa-solid fa-floppy-disk mr-2"></i>Commit System Changes
+                    </button>
                 </div>
             </form>
         </div>
@@ -554,19 +1225,62 @@
     <i class="fa-solid fa-comment-dots"></i>
 </a>
 
+<!-- FLOATING MOBILE MENU BUTTON -->
+<button class="floating-mobile-menu" onclick="showMobileNav()" id="mobile-fab" title="Quick Navigation">
+    <i class="fa-solid fa-grid-2" style="color:var(--primary-text)"></i>
+</button>
+
+<!-- MOBILE QUICK NAV PANEL -->
+<div id="mobile-quick-nav" class="fixed bottom-20 right-4 z-[998] flex-col gap-2 hidden">
+    <button onclick="switchTab('dashboard');hideMobileNav()" class="btn-primary text-xs px-4 py-2 flex items-center gap-2">
+        <i class="fa-solid fa-chart-line w-4"></i> Dashboard
+    </button>
+    <button onclick="switchTab('inventory');hideMobileNav()" class="btn-primary text-xs px-4 py-2 flex items-center gap-2">
+        <i class="fa-solid fa-box-archive w-4"></i> Inventory
+    </button>
+    <button onclick="switchTab('analytics');hideMobileNav()" class="btn-primary text-xs px-4 py-2 flex items-center gap-2">
+        <i class="fa-solid fa-microchip w-4"></i> Analytics
+    </button>
+    <button onclick="switchTab('add-product');hideMobileNav()" class="btn-primary text-xs px-4 py-2 flex items-center gap-2">
+        <i class="fa-solid fa-plus w-4"></i> New Entry
+    </button>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
 <script>
-/** * LOGIC LINES PRESERVED (802+)
- * GRAPHS LOGIC UNTOUCHED
- * ENDPOINTS UNTOUCHED
+/**
+ * LuxeStore | Pixup8k Admin Panel
+ * Full Logic — Light Blue & White Theme
+ * Lines: 890+
  */
+
+/* ============================================================
+   GLOBAL STATE
+============================================================ */
 let globalData = { products: [] };
-let globalAnalytics = { total_searches: 0, total_clicks: 0, most_questions: {}, product_search: {}, product_clicks: {}, price_updates: {}, supported_languages: {} };
+let globalAnalytics = {
+    total_searches: 0,
+    total_clicks: 0,
+    most_questions: {},
+    product_search: {},
+    product_clicks: {},
+    price_updates: {},
+    supported_languages: {}
+};
 let chartClicks = null;
 let chartCircle = null;
 let chartLanguages = null;
+let sidebarDesktopCollapsed = false;
+let analyticsFilterQuery = '';
+let pendingDeleteForm = null;
+
 const authStatus = "{{ status }}";
 
-// Responsive Sidebar Toggle
+/* ============================================================
+   SIDEBAR — TOGGLE (MOBILE)
+============================================================ */
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -574,102 +1288,284 @@ function toggleSidebar() {
     overlay.classList.toggle('active');
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    if(authStatus === "success") {
-        document.getElementById("auth-overlay").classList.add("hidden");
-        sync();
-    } else if(authStatus === "failed") {
-        document.getElementById("error-msg").classList.remove("hidden");
-    }
+/* ============================================================
+   SIDEBAR — DESKTOP COLLAPSE/EXPAND
+============================================================ */
+function desktopToggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const icon = document.getElementById('sidebar-toggle-icon');
+    const btn = document.getElementById('sidebar-toggle-btn');
 
-    const searchInput = document.getElementById('inventory-search-input');
-    if(searchInput) {
-        searchInput.addEventListener('input', (e) => filterInventory(e.target.value));
-    }
-});
+    sidebarDesktopCollapsed = !sidebarDesktopCollapsed;
 
-async function sync() {
-    try {
-        const [d, a] = await Promise.all([fetch("/api/data"), fetch("/api/analytics")]);
-        globalData = await d.json();
-        globalAnalytics = await a.json();
-
-        document.getElementById("connection-status").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span>Online`;
-        
-        refreshDashboard();
-        refreshInventory(globalData.products || []);
-    } catch(e) {
-        document.getElementById("connection-status").innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Offline Node`;
+    if (sidebarDesktopCollapsed) {
+        sidebar.classList.add('collapsed');
+        mainContent.classList.add('sidebar-collapsed');
+        icon.className = 'fa-solid fa-chevron-left';
+        btn.style.right = '0';
+    } else {
+        sidebar.classList.remove('collapsed');
+        mainContent.classList.remove('sidebar-collapsed');
+        icon.className = 'fa-solid fa-chevron-right';
+        btn.style.right = '0';
     }
 }
 
+/* ============================================================
+   MOBILE QUICK NAV
+============================================================ */
+function showMobileNav() {
+    const nav = document.getElementById('mobile-quick-nav');
+    nav.classList.toggle('hidden');
+    nav.classList.toggle('flex');
+}
+
+function hideMobileNav() {
+    const nav = document.getElementById('mobile-quick-nav');
+    nav.classList.add('hidden');
+    nav.classList.remove('flex');
+}
+
+/* ============================================================
+   TOAST NOTIFICATIONS — Light Blue Styled
+============================================================ */
+function showToast(message, icon = 'fa-circle-check') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3000);
+}
+
+/* ============================================================
+   CONFIRM DELETE POPUP
+============================================================ */
+function confirmDelete(form) {
+    pendingDeleteForm = form;
+    const overlay = document.getElementById('confirm-overlay');
+    overlay.classList.add('active');
+    return false; // Prevent default form submission
+}
+
+function cancelDelete() {
+    pendingDeleteForm = null;
+    document.getElementById('confirm-overlay').classList.remove('active');
+}
+
+function executeDelete() {
+    if (pendingDeleteForm) {
+        pendingDeleteForm.submit();
+    }
+    document.getElementById('confirm-overlay').classList.remove('active');
+}
+
+/* ============================================================
+   DOM READY
+============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+    if (authStatus === "success") {
+        document.getElementById("auth-overlay").classList.add("hidden");
+        sync();
+    } else if (authStatus === "failed") {
+        const errEl = document.getElementById("error-msg");
+        if (errEl) errEl.classList.remove("hidden");
+    }
+
+    const searchInput = document.getElementById('inventory-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => filterInventory(e.target.value));
+    }
+
+    // Close mobile quick nav when clicking outside
+    document.addEventListener('click', (e) => {
+        const nav = document.getElementById('mobile-quick-nav');
+        const fab = document.getElementById('mobile-fab');
+        if (!nav.contains(e.target) && !fab.contains(e.target)) {
+            nav.classList.add('hidden');
+            nav.classList.remove('flex');
+        }
+    });
+});
+
+/* ============================================================
+   SYNC — Fetch Data & Analytics
+============================================================ */
+async function sync() {
+    try {
+        const [d, a] = await Promise.all([
+            fetch("/api/data"),
+            fetch("/api/analytics")
+        ]);
+        globalData = await d.json();
+        globalAnalytics = await a.json();
+
+        document.getElementById("connection-status").innerHTML =
+            `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online`;
+
+        refreshDashboard();
+        refreshInventory(globalData.products || []);
+        checkClickDropWarning();
+    } catch (e) {
+        document.getElementById("connection-status").innerHTML =
+            `<span class="w-2 h-2 rounded-full bg-red-500"></span> Offline Node`;
+    }
+}
+
+/* ============================================================
+   CLICK DROP WARNING — Alert if total clicks < 100
+============================================================ */
+function checkClickDropWarning() {
+    const totalClicks = globalAnalytics.total_clicks || 0;
+    const warningEl = document.getElementById('click-drop-warning');
+    if (totalClicks < 100 && totalClicks > 0) {
+        warningEl.classList.add('show');
+    } else {
+        warningEl.classList.remove('show');
+    }
+}
+
+/* ============================================================
+   SWITCH TAB
+============================================================ */
 function switchTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    
+
     document.getElementById('tab-' + tabId).classList.add('active');
     document.getElementById('link-' + tabId).classList.add('active');
     document.getElementById('page-title').innerText = tabId.replace('-', ' ');
 
-    // Close mobile sidebar on navigation
-    if(window.innerWidth < 1024) toggleSidebar();
+    if (window.innerWidth < 1024) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    }
 
-    if(tabId === 'analytics') renderCharts();
-    if(tabId === 'dashboard') renderDashboardCharts();
+    if (tabId === 'analytics') renderCharts();
+    if (tabId === 'dashboard') renderDashboardCharts();
 }
 
+/* ============================================================
+   REFRESH DASHBOARD
+============================================================ */
 function refreshDashboard() {
     const products = globalData.products || [];
     document.getElementById("stat-count").innerText = products.length;
     document.getElementById("stat-total-clicks").innerText = globalAnalytics.total_clicks || 0;
     document.getElementById("stat-total-searches").innerText = globalAnalytics.total_searches || 0;
 
-    // ADDED: Average Price Logic
-    if (products.length > 0) {
-        const totalValue = products.reduce((acc, p) => acc + (parseFloat(p.price) || 0), 0);
-        const avg = (totalValue / products.length).toFixed(2);
+    // Auto-calculate and update average price
+    updateAveragePrice(products);
+
+    const growth = globalAnalytics.total_clicks > 0
+        ? (globalAnalytics.total_clicks / 500 * 100).toFixed(1)
+        : 0;
+    document.getElementById("click-growth-percent").innerText = `+${growth}% efficiency`;
+
+    // Recent 4 products
+    const recent = [...products].slice(-4).reverse();
+    document.getElementById("recent-grid").innerHTML = recent.map(p => `
+        <div class="flex items-center gap-4 p-4 border rounded-2xl hover:shadow-sm transition-all cursor-default" style="border-color:#c7e8f3">
+            <div class="w-12 h-12 shadow-sm bg-white overflow-hidden rounded-lg border flex items-center justify-center flex-shrink-0" style="border-color:#c7e8f3">
+                <img src="${p.image_link}" class="max-h-full object-contain"
+                    onerror="this.src='https://placehold.co/48x48?text=N%2FA'">
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="card-title truncate text-slate-800 uppercase tracking-tight">${p.title}</p>
+                <p class="text-[10px] font-bold mt-0.5" style="color:var(--primary-text)">$${p.price} • ${p.category}</p>
+            </div>
+            <span class="text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0" style="background:var(--primary);color:var(--primary-text)">recorded</span>
+        </div>
+    `).join("");
+
+    // Top Selling Product
+    updateTopSellingCard(products);
+
+    renderDashboardCharts();
+}
+
+/* ============================================================
+   UPDATE AVERAGE PRICE — Auto-updates when product added
+============================================================ */
+function updateAveragePrice(products) {
+    const prods = products || globalData.products || [];
+    if (prods.length > 0) {
+        const totalValue = prods.reduce((acc, p) => acc + (parseFloat(p.price) || 0), 0);
+        const avg = (totalValue / prods.length).toFixed(2);
         document.getElementById("stat-avg-price").innerText = `$${avg}`;
     } else {
         document.getElementById("stat-avg-price").innerText = "$0.00";
     }
-
-    const growth = globalAnalytics.total_clicks > 0 ? (globalAnalytics.total_clicks / 500 * 100).toFixed(1) : 0;
-    document.getElementById("click-growth-percent").innerText = `+${growth}% efficiency`;
-
-    const recent = [...products].slice(-4).reverse();
-    document.getElementById("recent-grid").innerHTML = recent.map(p => `
-        <div class="flex items-center gap-4 p-4 border border-slate-50 rounded-2xl hover:bg-slate-50 transition-all cursor-default">
-            <div class="product-img-wrapper w-12 h-12 shadow-sm bg-white overflow-hidden rounded-lg border border-slate-100 flex items-center justify-center flex-shrink-0">
-                <img src="${p.image_link}" class="max-h-full object-contain">
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-xs font-bold truncate text-slate-800 uppercase tracking-tight">${p.title}</p>
-                <p class="text-[10px] text-slate-400 font-bold mt-0.5">$${p.price} • ${p.category}</p>
-            </div>
-            <span class="text-[9px] font-black px-2 py-1 bg-blue-50 text-blue-600 rounded-md flex-shrink-0">recorded</span>
-        </div>
-    `).join("");
-    
-    renderDashboardCharts();
 }
 
+/* ============================================================
+   TOP SELLING PRODUCT CARD
+============================================================ */
+function updateTopSellingCard(products) {
+    if (!products || products.length === 0) return;
+
+    // Find product with highest trending_score
+    const topProduct = products.reduce((best, p) => {
+        const score = parseFloat(p.trending_score) || 0;
+        const bestScore = parseFloat(best.trending_score) || 0;
+        return score > bestScore ? p : best;
+    }, products[0]);
+
+    document.getElementById('top-product-title').innerText = topProduct.title || 'Unknown';
+    document.getElementById('top-product-meta').innerText =
+        `$${topProduct.price} • ${topProduct.category} • Rating: ${topProduct.rating || 'N/A'}`;
+    document.getElementById('top-product-score').innerText =
+        `Trending Score: ${topProduct.trending_score || 0}`;
+
+    const img = document.getElementById('top-product-img');
+    const placeholder = document.getElementById('top-product-placeholder');
+    if (topProduct.image_link) {
+        img.src = topProduct.image_link;
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+    }
+
+    // Highlight products with trending_score > 80
+    highlightTrendingProducts();
+}
+
+/* ============================================================
+   HIGHLIGHT TRENDING PRODUCTS (score > 80)
+============================================================ */
+function highlightTrendingProducts() {
+    // Applied in refreshInventory via the template
+}
+
+/* ============================================================
+   RENDER DASHBOARD CHARTS — Doughnut shows last 5 searches
+============================================================ */
 function renderDashboardCharts() {
     const searchData = globalAnalytics.product_search || {};
-    const sortedEntries = Object.entries(searchData).sort((a,b) => b[1] - a[1]).slice(0, 10);
+    // Last 5 searches only
+    const sortedEntries = Object.entries(searchData).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const labels = sortedEntries.map(e => e[0]);
     const counts = sortedEntries.map(e => e[1]);
 
-    if(chartCircle) chartCircle.destroy();
+    if (chartCircle) chartCircle.destroy();
     const ctx = document.getElementById('searchCircleChart');
-    if(!ctx || labels.length === 0) return;
-    
+    if (!ctx || labels.length === 0) return;
+
+    // Light blue color palette for doughnut segments
     chartCircle = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: labels,
             datasets: [{
                 data: counts,
-                backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe', '#eff6ff', '#f1f5f9', '#f8fafc', '#cbd5e1'],
+                backgroundColor: [
+                    '#add8e6', '#7ec8e3', '#4ab4d1',
+                    '#c5e8f0', '#85c9de'
+                ],
                 borderWidth: 2,
                 borderColor: '#ffffff',
                 hoverOffset: 15
@@ -683,81 +1579,131 @@ function renderDashboardCharts() {
             circumference: 180,
             plugins: {
                 tooltip: {
-                    backgroundColor: '#1e293b',
+                    backgroundColor: 'var(--primary, #add8e6)',
+                    titleColor: '#1a6b8a',
+                    bodyColor: '#1a6b8a',
                     titleFont: { size: 12, weight: '600' },
                     padding: 12,
                     displayColors: true,
-                    boxPadding: 6
+                    boxPadding: 6,
+                    callbacks: {
+                        labelColor: function(context) {
+                            return { borderColor: '#add8e6', backgroundColor: '#add8e6' };
+                        }
+                    }
                 },
-                legend: { 
-                    position: 'bottom', 
-                    labels: { 
-                        usePointStyle: true, 
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
                         pointStyle: 'rectRounded',
                         padding: 15,
-                        font: { size: 10, weight: '600' }, 
-                        color: '#64748b' 
-                    } 
+                        font: { size: 10, weight: '600' },
+                        color: '#1a6b8a'
+                    }
                 }
             }
         }
     });
 }
 
+/* ============================================================
+   REFRESH INVENTORY GRID
+============================================================ */
 function refreshInventory(list) {
     const grid = document.getElementById("full-inventory-grid");
-    if(!grid) return;
-    
-    grid.innerHTML = list.length ? list.map(p => `
-        <div class="glass-card group flex flex-col items-center text-center p-6 border-slate-100 hover:border-blue-200">
-            <div class="w-full aspect-square bg-slate-50 rounded-xl p-6 flex items-center justify-center border border-slate-50 mb-6 transition-all group-hover:bg-white group-hover:shadow-inner">
-                <img src="${p.image_link}" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/200x200?text=Asset+Missing'">
+    if (!grid) return;
+
+    grid.innerHTML = list.length ? list.map(p => {
+        const tScore = parseFloat(p.trending_score) || 0;
+        const trendBadge = tScore > 80
+            ? `<span class="trending-badge"><i class="fa-solid fa-fire-flame-curved"></i> Trending</span>`
+            : '';
+        return `
+        <div class="glass-card group flex flex-col items-center text-center p-6" style="border-color:#c7e8f3">
+            <div class="w-full aspect-square bg-white rounded-xl p-6 flex items-center justify-center border mb-6 transition-all group-hover:shadow-inner" style="border-color:#c7e8f3">
+                <img src="${p.image_link}" class="max-h-full max-w-full object-contain"
+                    onerror="this.src='https://placehold.co/200x200?text=Asset+Missing'">
             </div>
             <div class="w-full flex-1">
-                <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-1">${p.category}</p>
-                <p class="text-sm font-bold text-slate-900 uppercase truncate mb-4">${p.title}</p>
-                <div class="flex items-center justify-center gap-4 mb-6">
-                   <p class="text-base font-bold text-slate-900">$${p.price}</p>
-                   <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
-                   <p class="text-[10px] font-bold text-slate-400 mono">${p.id}</p>
+                <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:var(--primary-text)">${p.category}</p>
+                <p class="card-title font-bold text-slate-900 uppercase truncate mb-2">${p.title}</p>
+                ${trendBadge}
+                <div class="flex items-center justify-center gap-4 mt-3 mb-4">
+                    <p class="text-base font-bold text-slate-900">$${p.price}</p>
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                    <p class="text-[10px] font-bold mono" style="color:var(--primary-text)">${p.id}</p>
                 </div>
             </div>
-            <div class="w-full grid grid-cols-2 gap-2 pt-6 border-t border-slate-50">
-                <button onclick="openEditModal('${p._id}')" class="btn-secondary">Edit</button>
-                <form action="/delete_product" method="POST" onsubmit="return confirm('Archive record?')" class="w-full">
+            <div class="w-full grid grid-cols-2 gap-2 pt-4 border-t" style="border-color:#c7e8f3">
+                <button onclick="openEditModal('${p._id}')" class="btn-secondary text-xs py-2">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
+                </button>
+                <form action="/delete_product" method="POST" onsubmit="return confirmDelete(this)" class="w-full">
                     <input type="hidden" name="id" value="${p._id}">
-                    <button class="btn-secondary w-full !text-red-500 hover:!bg-red-50 hover:!border-red-100">Delete</button>
+                    <button type="submit" class="btn-secondary w-full text-xs py-2 !text-red-500 hover:!bg-red-50">
+                        <i class="fa-solid fa-trash mr-1"></i>Delete
+                    </button>
                 </form>
             </div>
         </div>
-    `).join("") : '<div class="col-span-full py-20 text-center text-slate-400 font-bold tracking-widest uppercase text-sm">No Registry Found</div>';
+    `}).join("") : `
+        <div class="col-span-full py-20 text-center font-bold tracking-widest uppercase text-sm" style="color:var(--primary-text)">
+            <i class="fa-solid fa-box-open text-4xl mb-4 block" style="color:var(--primary)"></i>
+            No Registry Found
+        </div>`;
 }
 
+/* ============================================================
+   FILTER INVENTORY
+============================================================ */
 function filterInventory(q) {
     const query = q.toLowerCase();
-    const filtered = globalData.products.filter(p => 
-        (p.title && p.title.toLowerCase().includes(query)) || 
+    const filtered = globalData.products.filter(p =>
+        (p.title && p.title.toLowerCase().includes(query)) ||
         (p.id && p.id.toLowerCase().includes(query)) ||
         (p.category && p.category.toLowerCase().includes(query))
     );
     refreshInventory(filtered);
 }
 
+/* ============================================================
+   ANALYTICS SEARCH FILTER
+============================================================ */
+function filterAnalytics(q) {
+    analyticsFilterQuery = q.toLowerCase().trim();
+    renderCharts();
+}
+
+/* ============================================================
+   RENDER ANALYTICS CHARTS
+============================================================ */
 function renderCharts() {
     const clickData = globalAnalytics.product_clicks || {};
     const questionData = globalAnalytics.most_questions || {};
     const languageData = globalAnalytics.supported_languages || {};
-    
-    const entries = Object.entries(clickData).sort((a,b) => b[1]-a[1]).slice(0, 10);
-    const labels = entries.map(([id, val]) => {
+
+    let entries = Object.entries(clickData).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+    // Apply analytics filter if set
+    if (analyticsFilterQuery) {
+        entries = entries.filter(([id]) => {
+            const p = globalData.products.find(x => x._id === id);
+            if (!p) return false;
+            return p.title.toLowerCase().includes(analyticsFilterQuery) ||
+                   (p.category && p.category.toLowerCase().includes(analyticsFilterQuery));
+        });
+    }
+
+    const labels = entries.map(([id]) => {
         const p = globalData.products.find(x => x._id === id);
         return p ? p.title.substring(0, 14) : id.substring(0, 6);
     });
     const values = entries.map(e => e[1]);
 
-    if(chartClicks) chartClicks.destroy();
+    if (chartClicks) chartClicks.destroy();
     const clicksCtx = document.getElementById('clicksChart');
-    if(clicksCtx && values.length > 0) {
+    if (clicksCtx && values.length > 0) {
         chartClicks = new Chart(clicksCtx, {
             type: 'bar',
             data: {
@@ -765,9 +1711,9 @@ function renderCharts() {
                 datasets: [{
                     label: 'Engagement Index',
                     data: values,
-                    backgroundColor: '#2563eb',
-                    hoverBackgroundColor: '#1d4ed8',
-                    borderRadius: 8,
+                    backgroundColor: '#add8e6',
+                    hoverBackgroundColor: '#7ec8e3',
+                    borderRadius: 9999, // Pill bars
                     barThickness: window.innerWidth < 640 ? 15 : 24
                 }]
             },
@@ -775,36 +1721,55 @@ function renderCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { 
+                    y: {
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9', drawBorder: false }, 
-                        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8' } 
+                        grid: { color: '#f0faff', drawBorder: false },
+                        ticks: { font: { size: 10, weight: '600' }, color: '#1a6b8a' }
                     },
-                    x: { 
-                        grid: { display: false }, 
-                        ticks: { font: { size: 9, weight: '600' }, color: '#64748b' } 
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 9, weight: '600' }, color: '#1a6b8a' }
                     }
                 },
-                plugins: { 
-                    legend: { display: false }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        // Light blue styled tooltips
+                        backgroundColor: '#add8e6',
+                        titleColor: '#1a6b8a',
+                        bodyColor: '#1a6b8a',
+                        titleFont: { size: 11, weight: '700' },
+                        bodyFont: { size: 11 },
+                        padding: 10,
+                        cornerRadius: 9999,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(items) {
+                                return items[0].label;
+                            },
+                            label: function(item) {
+                                return `Clicks: ${item.formattedValue}`;
+                            }
+                        }
+                    }
                 }
             }
         });
     }
 
-    if(chartLanguages) chartLanguages.destroy();
+    if (chartLanguages) chartLanguages.destroy();
     const langCtx = document.getElementById('languagesChart');
     const langLabels = Object.keys(languageData);
     const langValues = Object.values(languageData);
-    
-    if(langCtx && langLabels.length > 0) {
+
+    if (langCtx && langLabels.length > 0) {
         chartLanguages = new Chart(langCtx, {
             type: 'pie',
             data: {
                 labels: langLabels.map(l => l.toUpperCase()),
                 datasets: [{
                     data: langValues,
-                    backgroundColor: ['#2563eb', '#6366f1', '#10b981', '#f59e0b', '#ef4444'],
+                    backgroundColor: ['#add8e6', '#7ec8e3', '#4ab4d1', '#c5e8f0', '#85c9de'],
                     borderWidth: 2,
                     borderColor: '#ffffff'
                 }]
@@ -813,44 +1778,80 @@ function renderCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { 
+                    legend: {
                         position: 'right',
-                        labels: { font: { size: 9, weight: 'bold' }, boxWidth: 10, padding: 8 }
+                        labels: {
+                            font: { size: 9, weight: 'bold' },
+                            boxWidth: 10,
+                            padding: 8,
+                            color: '#1a6b8a'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#add8e6',
+                        titleColor: '#1a6b8a',
+                        bodyColor: '#1a6b8a'
                     }
                 }
             }
         });
     }
 
+    // Questions list
     const qList = document.getElementById("questions-list");
-    const sortedQ = Object.entries(questionData).sort((a,b) => b[1]-a[1]);
+    const sortedQ = Object.entries(questionData).sort((a, b) => b[1] - a[1]);
     qList.innerHTML = sortedQ.length ? sortedQ.map(([q, count]) => `
-        <div class="flex items-start justify-between p-3 border border-slate-50 bg-slate-50/30 rounded-xl hover:bg-slate-100 transition-all group">
+        <div class="flex items-start justify-between p-3 rounded-xl transition-all group" style="background:#f0faff;border:1px solid #c7e8f3">
             <div class="flex-1 pr-4">
-                <p class="text-xs font-semibold text-slate-800 leading-relaxed italic">"${q}"</p>
+                <p class="text-xs font-semibold leading-relaxed italic text-slate-800">"${q}"</p>
             </div>
             <div class="flex-shrink-0">
-                <span class="text-[10px] font-bold bg-white text-blue-600 px-3 py-1 rounded-full border border-blue-100 shadow-sm">${count}</span>
+                <span class="text-[10px] font-bold bg-white px-3 py-1 rounded-full border" style="color:var(--primary-text);border-color:#add8e6">${count}</span>
             </div>
         </div>
-    `).join("") : '<div class="text-center py-10 text-slate-300 text-xs font-bold uppercase tracking-widest">Inquiry Stream Clear</div>';
+    `).join("") : `<div class="text-center py-10 text-xs font-bold uppercase tracking-widest" style="color:var(--primary-text);opacity:0.5">Inquiry Stream Clear</div>`;
 
+    // Analytics table
     document.getElementById("analytics-tbody").innerHTML = globalData.products.slice(0, 20).map(p => `
-        <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="font-semibold text-slate-900 p-5">${p.title} <span class="block text-[10px] text-slate-400 mono mt-1">${p.id}</span></td>
-            <td class="text-slate-500 font-bold whitespace-nowrap hidden">${clickData[p._id] || 0} clicks</td>
-            <td class="text-right p-5"><span class="text-[10px] font-black text-emerald-500 uppercase bg-emerald-50 px-3 py-1.5 rounded-full">Synchronized</span></td>
+        <tr class="hover:bg-blue-50/40 transition-colors">
+            <td class="font-semibold text-slate-900 p-5">${p.title}
+                <span class="block text-[10px] mono mt-1" style="color:var(--primary-text)">${p.id}</span>
+            </td>
+            <td class="font-bold hide-mobile p-5" style="color:var(--primary-text)">${clickData[p._id] || 0} clicks</td>
+            <td class="text-right p-5">
+                <span class="text-[10px] font-black uppercase px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600">Synchronized</span>
+            </td>
         </tr>
     `).join("");
 }
 
+/* ============================================================
+   EDIT MODAL — Prefill fields by product ID
+============================================================ */
 function openEditModal(id) {
     const p = globalData.products.find(x => x._id === id);
-    if(!p) return;
-    
+    if (!p) {
+        showToast('Product not found in registry.', 'fa-circle-exclamation');
+        return;
+    }
+
     document.getElementById("edit-id").value = p._id;
     document.getElementById("edit-title").value = p.title || '';
-    document.getElementById("edit-category").value = p.category || '';
+
+    // Prefill category dropdown
+    const editCat = document.getElementById("edit-category");
+    const catExists = Array.from(editCat.options).some(o => o.value === p.category);
+    if (catExists) {
+        editCat.value = p.category;
+    } else {
+        // Add the category if not in list, then select
+        const opt = document.createElement('option');
+        opt.value = p.category || '';
+        opt.text = p.category || '';
+        editCat.appendChild(opt);
+        editCat.value = p.category || '';
+    }
+
     document.getElementById("edit-price").value = p.price || 0;
     document.getElementById("edit-image-link").value = p.image_link || '';
     document.getElementById("edit-image").value = p.image || '';
@@ -859,10 +1860,10 @@ function openEditModal(id) {
     document.getElementById("edit-rating").value = p.rating || '';
     document.getElementById("edit-trending").value = p.trending_score || 0;
     document.getElementById("edit-description").value = p.description || '';
-    
+
     document.getElementById("modal-sku-display").innerText = p.id || '--';
     previewImg(p.image_link, 'edit-prev');
-    
+
     document.getElementById("edit-modal").classList.remove("hidden");
     document.body.style.overflow = 'hidden';
 }
@@ -872,18 +1873,115 @@ function closeEditModal() {
     document.body.style.overflow = 'auto';
 }
 
+/* ============================================================
+   LIVE IMAGE PREVIEW
+============================================================ */
 function previewImg(url, id) {
     const img = document.getElementById(id);
     const txt = document.getElementById(id + '-txt');
-    if(url) {
+    if (url && url.trim() !== '') {
         img.src = url;
         img.classList.remove('hidden');
-        if(txt) txt.classList.add('hidden');
+        if (txt) txt.classList.add('hidden');
     } else {
         img.classList.add('hidden');
-        if(txt) txt.classList.remove('hidden');
+        if (txt) txt.classList.remove('hidden');
     }
 }
+
+/* ============================================================
+   FILE UPLOAD — Live preview from file input
+============================================================ */
+function handleFileUpload(input) {
+    const file = input.files[0];
+    const nameDisplay = document.getElementById('file-name-display');
+    if (!file) return;
+
+    nameDisplay.textContent = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = document.getElementById('add-prev');
+        const txt = document.getElementById('add-prev-txt');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        if (txt) txt.classList.add('hidden');
+        // Also set the image-link input for form submission reference
+        document.getElementById('add-image-link').value = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+/* ============================================================
+   FORM VALIDATION
+============================================================ */
+function validatePrice(input) {
+    const errorEl = document.getElementById('price-error');
+    const val = parseFloat(input.value);
+    if (input.value !== '' && (isNaN(val) || val <= 0)) {
+        input.classList.add('error');
+        if (errorEl) { errorEl.style.display = 'block'; }
+        return false;
+    } else {
+        input.classList.remove('error');
+        if (errorEl) { errorEl.style.display = 'none'; }
+        return true;
+    }
+}
+
+function validateRating(input) {
+    const errorEl = document.getElementById('rating-error');
+    const val = parseFloat(input.value);
+    if (input.value !== '' && (isNaN(val) || val < 0 || val > 5)) {
+        input.classList.add('error');
+        if (errorEl) { errorEl.style.display = 'block'; }
+        return false;
+    } else {
+        input.classList.remove('error');
+        if (errorEl) { errorEl.style.display = 'none'; }
+        return true;
+    }
+}
+
+/* ============================================================
+   HANDLE ADD PRODUCT — Toast on success + avg price update
+============================================================ */
+function handleAddProduct(event) {
+    const priceInput = document.getElementById('add-price');
+    const ratingInput = document.getElementById('add-rating');
+
+    const priceValid = validatePrice(priceInput);
+    const ratingValid = validateRating(ratingInput);
+
+    if (!priceValid || !ratingValid) {
+        event.preventDefault();
+        showToast('Please fix validation errors before submitting.', 'fa-triangle-exclamation');
+        return false;
+    }
+
+    // Show success toast (the form will POST normally)
+    showToast('Product registration submitted successfully!', 'fa-circle-check');
+
+    // Optimistically update average price if we have current products
+    const products = globalData.products || [];
+    const newPrice = parseFloat(priceInput.value) || 0;
+    const allPrices = [...products.map(p => parseFloat(p.price) || 0), newPrice];
+    const newAvg = (allPrices.reduce((a, b) => a + b, 0) / allPrices.length).toFixed(2);
+    const avgEl = document.getElementById('stat-avg-price');
+    if (avgEl) avgEl.innerText = `$${newAvg}`;
+
+    return true; // Allow form submission
+}
+
+/* ============================================================
+   RESPONSIVE WINDOW HANDLER
+============================================================ */
+window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) {
+        const overlay = document.getElementById('sidebar-overlay');
+        overlay.classList.remove('active');
+    }
+});
 </script>
 </body>
 </html>
