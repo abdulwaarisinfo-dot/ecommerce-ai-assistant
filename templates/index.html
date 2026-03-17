@@ -916,7 +916,6 @@
                         <thead>
                             <tr class="text-[10px] uppercase font-bold" style="color:var(--primary-text)">
                                 <th class="p-5 text-left" style="background:var(--card-gradient-start)">Products</th>
-                                <th class="p-5 text-left hide-mobile" style="background:var(--card-gradient-start)">Engagement</th>
                                 <th class="p-5 text-right" style="background:var(--card-gradient-start)">Node Status</th>
                             </tr>
                         </thead>
@@ -1575,7 +1574,6 @@ function renderCharts() {
                     ${p.title}
                     <span class="block text-[10px] text-slate-400 mono mt-1">${p.id}</span>
                 </td>
-                <td class="text-slate-500 font-bold whitespace-nowrap hide-mobile p-5">${clickData[p._id] || 0} clicks</td>
                 <td class="text-right p-5">
                     <span class="text-[10px] font-black uppercase px-3 py-1.5 rounded-full" style="background:var(--primary);color:var(--primary-text)">Synchronized</span>
                 </td>
