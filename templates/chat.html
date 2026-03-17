@@ -4,23 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Pixup8k - AI Assistant</title>
-    <!-- Google Fonts for professional look -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-light: #eff6ff;
-            --primary-soft: #dbeafe;
+            --primary: #add8e6;
+            --primary-dark: #7ec8e3;
+            --primary-deep: #5ba8c4;
+            --primary-light: rgba(173, 216, 230, 0.12);
+            --primary-soft: rgba(173, 216, 230, 0.25);
+            --primary-border: rgba(173, 216, 230, 0.5);
             --text-dark: #1e293b;
-            --text-grey: #64748b;
-            --bg-light: #f8fafc;
-            --glass: rgba(255, 255, 255, 0.9);
+            --text-mid: #475569;
+            --text-grey: #94a3b8;
+            --bg: #ffffff;
+            --bg-subtle: #f8fafc;
+            --surface: rgba(255,255,255,0.95);
             --border: #e2e8f0;
+            --border-soft: rgba(226, 232, 240, 0.6);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.03);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-float: 0 20px 60px rgba(173,216,230,0.2), 0 4px 20px rgba(0,0,0,0.06);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 22px;
+            --radius-xl: 28px;
         }
 
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
@@ -29,282 +42,508 @@
             height: 100%;
             margin: 0;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg-light);
-            background-image: radial-gradient(at 0% 0%, hsla(217,100%,97%,1) 0, transparent 50%), 
-                              radial-gradient(at 50% 0%, hsla(220,100%,94%,1) 0, transparent 50%);
+            background: #ffffff;
+            background-image:
+                radial-gradient(ellipse at 0% 0%, rgba(173,216,230,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 100% 100%, rgba(173,216,230,0.06) 0%, transparent 60%);
             display: flex;
             flex-direction: column;
             color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* CONTAINER DESIGN */
+        /* ── LAYOUT ── */
         .chat-container {
             display: flex;
             flex-direction: column;
             flex: 1;
-            max-width: 900px;
+            max-width: 860px;
             margin: 0 auto;
             width: 100%;
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border-left: 1px solid var(--border);
-            border-right: 1px solid var(--border);
+            background: var(--surface);
+            backdrop-filter: blur(20px) saturate(1.8);
+            -webkit-backdrop-filter: blur(20px) saturate(1.8);
+            border-left: 1px solid var(--border-soft);
+            border-right: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-float);
+            position: relative;
+            overflow: hidden;
         }
 
-        /* HEADER DESIGN */
+        /* Ambient glow strip at top */
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(173,216,230,0.6) 30%,
+                rgba(126,200,227,0.9) 50%,
+                rgba(173,216,230,0.6) 70%,
+                transparent 100%);
+            z-index: 20;
+        }
+
+        /* ── HEADER ── */
         .chat-header {
-            background: #ffffff;
-            padding: 16px 24px;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(12px);
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border);
-            z-index: 10;
+            border-bottom: 1px solid var(--border-soft);
+            position: sticky;
+            top: 0;
+            z-index: 15;
         }
 
         .header-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .header-brand .dot {
-            width: 10px;
-            height: 10px;
+        .header-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(173,216,230,0.4);
+        }
+
+        .header-logo i {
+            font-size: 14px;
+            color: white;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .header-title {
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: -0.3px;
+            color: var(--text-dark);
+            line-height: 1;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: var(--text-grey);
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
             background: #22c55e;
             border-radius: 50%;
-            box-shadow: 0 0 10px #22c55e88;
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+            animation: pulse-dot 2.5s ease-in-out infinite;
         }
 
-        .header-brand span {
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: -0.5px;
-            color: var(--text-dark);
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+            50% { box-shadow: 0 0 0 5px rgba(34,197,94,0.1); }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         #langSelect {
-            padding: 8px 12px;
-            border-radius: 10px;
+            padding: 7px 14px 7px 10px;
+            border-radius: var(--radius-sm);
             border: 1px solid var(--border);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            background: white;
-            color: var(--text-grey);
+            background: var(--bg-subtle);
+            color: var(--text-mid);
             outline: none;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' viewBox='0 0 10 6'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
         }
 
-        #langSelect:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+        #langSelect:focus {
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
-        /* CHAT AREA */
+        /* ── CHAT AREA ── */
         #chatBox {
             flex: 1;
             overflow-y: auto;
-            padding: 24px;
+            padding: 28px 28px 16px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 18px;
             scroll-behavior: smooth;
         }
 
-        #chatBox::-webkit-scrollbar { width: 5px; }
-        #chatBox::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
+        #chatBox::-webkit-scrollbar { width: 4px; }
+        #chatBox::-webkit-scrollbar-track { background: transparent; }
+        #chatBox::-webkit-scrollbar-thumb {
+            background: var(--primary-border);
+            border-radius: 10px;
+        }
 
+        /* ── MESSAGE WRAPPERS ── */
         .msg-wrapper {
             display: flex;
             align-items: flex-end;
             gap: 10px;
-            max-width: 85%;
-            animation: slideIn 0.3s ease-out;
+            max-width: 82%;
+            animation: msgFadeSlide 0.32s cubic-bezier(0.25, 1, 0.4, 1) both;
+            will-change: opacity, transform;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes msgFadeSlide {
+            from { opacity: 0; transform: translateY(10px) scale(0.99); }
+            to   { opacity: 1; transform: translateY(0)    scale(1); }
         }
 
         .user-wrapper { align-self: flex-end; flex-direction: row-reverse; }
-        .bot-wrapper { align-self: flex-start; }
+        .bot-wrapper  { align-self: flex-start; }
 
+        /* Bot avatar */
+        .bot-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(173,216,230,0.35);
+        }
+
+        .bot-avatar i {
+            font-size: 11px;
+            color: white;
+        }
+
+        /* ── BUBBLES ── */
         .msg {
-            padding: 12px 18px;
-            border-radius: 18px;
-            font-size: 15px;
-            line-height: 1.5;
+            padding: 13px 18px;
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            line-height: 1.65;
             position: relative;
+            max-width: 100%;
+            word-break: break-word;
+            transition: box-shadow 0.2s ease;
         }
 
         .user-msg {
-            background: var(--primary);
-            color: white;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            background: linear-gradient(135deg, #c9e9f2 0%, #add8e6 50%, #96cfe0 100%);
+            color: #0f2d3d;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 4px 16px rgba(173,216,230,0.35), 0 1px 4px rgba(0,0,0,0.05);
+            font-weight: 500;
         }
 
         .bot-msg {
-            background: white;
+            background: #ffffff;
             color: var(--text-dark);
             border: 1px solid var(--border);
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border-bottom-left-radius: 5px;
+            box-shadow: var(--shadow-sm);
         }
 
-        /* THINKING INDICATOR */
+        .bot-msg b { color: var(--primary-deep); }
+
+        /* ── THINKING INDICATOR ── */
         .thinking-indicator {
             display: flex;
-            gap: 4px;
-            padding: 4px 0;
+            gap: 5px;
+            padding: 5px 2px;
             align-items: center;
         }
 
         .thinking-dot {
-            width: 6px;
-            height: 6px;
-            background: var(--text-grey);
+            width: 7px;
+            height: 7px;
+            background: var(--primary-dark);
             border-radius: 50%;
-            opacity: 0.4;
-            animation: bounce 1.4s infinite ease-in-out both;
+            opacity: 0.5;
+            animation: thinkPulse 1.6s ease-in-out infinite both;
         }
 
-        .thinking-dot:nth-child(1) { animation-delay: -0.32s; }
-        .thinking-dot:nth-child(2) { animation-delay: -0.16s; }
+        .thinking-dot:nth-child(1) { animation-delay: 0s; }
+        .thinking-dot:nth-child(2) { animation-delay: 0.22s; }
+        .thinking-dot:nth-child(3) { animation-delay: 0.44s; }
 
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
+        @keyframes thinkPulse {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+            30% { transform: translateY(-5px); opacity: 1; }
         }
 
-        /* PRODUCT CAROUSEL */
+        /* ── PRODUCT CAROUSEL ── */
+        .carousel-container {
+            width: 100%;
+        }
+
         .carousel {
             display: flex;
-            gap: 14px;
+            gap: 16px;
             overflow-x: auto;
-            padding: 5px 5px 15px 5px;
+            padding: 8px 4px 20px;
             margin-top: 10px;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            overscroll-behavior-x: contain;
         }
 
         .carousel::-webkit-scrollbar { display: none; }
 
+        /* ── Shimmer ── */
+        @keyframes shimmer {
+            0%   { background-position: -600px 0; }
+            100% { background-position: 600px 0; }
+        }
+
+        .card-shimmer {
+            min-width: 200px;
+            height: 300px;
+            border-radius: 18px;
+            background: linear-gradient(90deg,
+                #f1f5f9 0%,
+                #e8eef4 40%,
+                #f1f5f9 80%);
+            background-size: 600px 100%;
+            animation: shimmer 1.5s infinite linear;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
+
+        /* ── PRODUCT CARD ── */
         .product-card {
             min-width: 200px;
             max-width: 200px;
-            background: white;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            padding: 10px;
-            transition: all 0.3s ease;
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid #eef2f7;
+            padding: 14px;
             display: flex;
             flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+            scroll-snap-align: start;
+            flex-shrink: 0;
+            will-change: transform, box-shadow;
+
+            /* Layered shadow — resting state */
+            box-shadow:
+                0 1px 2px rgba(0,0,0,0.04),
+                0 4px 12px rgba(0,0,0,0.05),
+                0 0 0 0 rgba(173,216,230,0);
+
+            transition:
+                transform 0.25s cubic-bezier(0.25, 1, 0.4, 1),
+                box-shadow 0.25s ease,
+                border-color 0.2s ease;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary-soft);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transform: translateY(-6px);
+            border-color: rgba(173,216,230,0.7);
+            box-shadow:
+                0 2px 4px rgba(0,0,0,0.03),
+                0 8px 24px rgba(0,0,0,0.07),
+                0 0 0 3px rgba(173,216,230,0.18),
+                0 16px 40px rgba(173,216,230,0.22);
+        }
+
+        .product-card:active {
+            transform: translateY(-3px);
+            transition-duration: 0.1s;
+        }
+
+        /* ── Image container ── */
+        .product-img-wrap {
+            width: 100%;
+            height: 148px;
+            background: linear-gradient(145deg, #edf5f8 0%, #e8f4f8 50%, #f0f8fb 100%);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
         }
 
         .product-card img {
-            width: 100%;
-            height: 140px;
+            width: 86%;
+            height: 86%;
             object-fit: contain;
-            background: var(--bg-light);
-            border-radius: 12px;
-            margin-bottom: 10px;
+            transition: transform 0.28s cubic-bezier(0.25, 1, 0.4, 1);
+            display: block;
+            will-change: transform;
         }
 
+        .product-card:hover img {
+            transform: scale(1.07);
+        }
+
+        /* ── Text area ── */
         .product-title {
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 700;
-            color: var(--text-dark);
-            height: 36px;
+            color: #1e293b;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-            margin-bottom: 8px;
+            line-height: 1.45;
+            min-height: 36px;
+            letter-spacing: -0.1px;
         }
 
         .product-price {
             font-size: 16px;
             font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 10px;
+            color: #4da8c7;
+            letter-spacing: -0.5px;
         }
 
+        /* ── CTA button ── */
         .view-btn {
-            background: var(--primary-light);
-            color: var(--primary);
-            border: none;
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 12px;
+            display: block;
+            width: 100%;
+            background: rgba(173,216,230,0.18);
+            color: #3a8fa8;
+            border: 1.5px solid rgba(173,216,230,0.55);
+            padding: 9px 14px;
+            border-radius: 50px;
+            font-size: 11.5px;
             font-weight: 700;
             cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
             text-align: center;
+            letter-spacing: 0.25px;
+            font-family: inherit;
+            text-decoration: none;
+            margin-top: auto;
+            will-change: transform;
+
+            transition:
+                background 0.18s ease,
+                color 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                transform 0.14s cubic-bezier(0.25, 1, 0.4, 1);
         }
 
         .view-btn:hover {
-            background: var(--primary);
-            color: white;
+            background: #add8e6;
+            color: #0d3244;
+            border-color: #7ec8e3;
+            box-shadow: 0 4px 16px rgba(173,216,230,0.5);
+            transform: scale(1.03) translateY(-1px);
         }
 
-        /* SUGGESTION CHIPS */
+        .view-btn:active {
+            transform: scale(0.97);
+            box-shadow: none;
+            transition-duration: 0.08s;
+        }
+
+        /* ── SUGGESTION CHIPS ── */
+        .suggestion-box {
+            animation: msgFadeSlide 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
         .chip-container {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 8px;
         }
 
         .chip {
             padding: 8px 16px;
-            background: white;
-            border: 1px solid var(--primary-soft);
-            border-radius: 20px;
-            color: var(--primary);
-            font-size: 13px;
+            background: #ffffff;
+            border: 1.5px solid var(--primary-border);
+            border-radius: 50px;
+            color: var(--primary-deep);
+            font-size: 12.5px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+            will-change: transform;
+            transition:
+                background 0.18s ease,
+                color 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                transform 0.14s cubic-bezier(0.25, 1, 0.4, 1);
         }
 
         .chip:hover {
             background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            color: #0f2d3d;
+            border-color: var(--primary-dark);
+            box-shadow: 0 3px 10px rgba(173,216,230,0.38);
+            transform: translateY(-1px) scale(1.02);
         }
 
-        /* INPUT AREA */
+        .chip:active {
+            transform: scale(0.97);
+            transition-duration: 0.08s;
+        }
+
+        /* ── INPUT AREA ── */
         .input-area-wrapper {
-            background: white;
-            padding: 16px 24px 24px 24px;
-            border-top: 1px solid var(--border);
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            padding: 14px 28px 24px;
+            border-top: 1px solid var(--border-soft);
         }
 
         .input-area {
             display: flex;
             align-items: center;
-            background: var(--bg-light);
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            padding: 6px 6px 6px 20px;
-            gap: 10px;
-            transition: all 0.2s;
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            padding: 5px 5px 5px 20px;
+            gap: 8px;
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.25s ease;
         }
 
         .input-area:focus-within {
-            background: white;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--primary-light);
+            background: #ffffff;
+            border-color: var(--primary-dark);
+            box-shadow:
+                0 0 0 3.5px rgba(173,216,230,0.22),
+                0 2px 14px rgba(173,216,230,0.14);
         }
 
         .input-area input {
@@ -312,87 +551,224 @@
             border: none;
             background: transparent;
             padding: 10px 0;
-            font-size: 15px;
+            font-size: 14px;
             font-family: inherit;
             outline: none;
             color: var(--text-dark);
+            caret-color: var(--primary-deep);
         }
 
-        .input-area button {
-            width: 42px;
-            height: 42px;
-            background: var(--primary);
-            color: white;
+        .input-area input::placeholder {
+            color: var(--text-grey);
+            font-weight: 400;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #0f2d3d;
             border: none;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(173,216,230,0.4);
+            will-change: transform;
+            transition:
+                transform 0.16s cubic-bezier(0.25, 1, 0.4, 1),
+                box-shadow 0.2s ease;
         }
 
-        .input-area button:hover {
-            background: #1d4ed8;
-            transform: scale(1.05);
+        .send-btn i {
+            font-size: 13px;
+            transition: transform 0.16s cubic-bezier(0.25, 1, 0.4, 1);
         }
 
-        /* TOAST */
+        .send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 20px rgba(173,216,230,0.65);
+        }
+
+        .send-btn:hover i {
+            transform: translateY(-1px);
+        }
+
+        .send-btn:active {
+            transform: scale(0.94);
+            box-shadow: 0 1px 6px rgba(173,216,230,0.3);
+            transition-duration: 0.08s;
+        }
+
+        /* ── TOAST ── */
         .analytics-toast {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: white;
+            background: #ffffff;
             color: var(--text-dark);
-            padding: 12px 20px;
+            padding: 12px 18px 12px 16px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--primary);
-            transform: translateX(120%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 3px solid var(--primary-dark);
+            transform: translateX(calc(100% + 30px));
+            opacity: 0;
+            transition:
+                transform 0.38s cubic-bezier(0.25, 1, 0.4, 1),
+                opacity 0.28s ease;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 280px;
         }
 
-        .analytics-toast.show { transform: translateX(0); }
+        .analytics-toast::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary-dark);
+            flex-shrink: 0;
+        }
+
+        .analytics-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        /* ── WELCOME STATE ── */
+        .welcome-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 32px 20px;
+            gap: 8px;
+            animation: msgFadeSlide 0.5s ease both;
+        }
+
+        .welcome-hint .wh-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(173,216,230,0.2) 0%, rgba(173,216,230,0.1) 100%);
+            border: 1px solid var(--primary-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+
+        .welcome-hint .wh-icon i {
+            font-size: 18px;
+            color: var(--primary-dark);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            .chat-container {
+                border-left: none;
+                border-right: none;
+                box-shadow: none;
+            }
+
+            .chat-header {
+                padding: 12px 18px;
+            }
+
+            #chatBox {
+                padding: 18px 16px 12px;
+                gap: 14px;
+            }
+
+            .msg-wrapper {
+                max-width: 92%;
+            }
+
+            .msg {
+                font-size: 14px;
+                padding: 11px 15px;
+            }
+
+            .input-area-wrapper {
+                padding: 10px 16px 20px;
+            }
+
+            .product-card {
+                min-width: 165px;
+                max-width: 165px;
+            }
+
+            .product-img-wrap {
+                height: 120px;
+            }
+        }
+
+        /* Scroll padding at bottom */
+        #chatBox::after {
+            content: '';
+            display: block;
+            height: 4px;
+        }
     </style>
 </head>
 
 <body>
 
 <div class="chat-container">
+
+    <!-- HEADER -->
     <div class="chat-header">
         <div class="header-brand">
-            <div class="dot"></div>
-            <span>Pixup8k AI</span>
+            <div class="header-logo">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div class="header-text">
+                <div class="header-title">Pixup8k AI</div>
+                <div class="header-status">
+                    <div class="status-dot"></div>
+                    <span>Online · Ready</span>
+                </div>
+            </div>
         </div>
-        <select id="langSelect">
-            <option value="en">English</option>
-            <option value="ur">اردو</option>
-            <option value="de">Deutsch</option>
-        </select>
+        <div class="header-right">
+            <select id="langSelect">
+                <option value="en">🌐 English</option>
+                <option value="ur">اردو</option>
+                <option value="de">Deutsch</option>
+            </select>
+        </div>
     </div>
 
+    <!-- CHAT BOX -->
     <div id="chatBox">
         <div class="msg-wrapper bot-wrapper">
+            <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
             <div class="msg bot-msg">
                 Hello! I'm your Stellar Style assistant. How can I help you find the perfect outfit today?
             </div>
         </div>
     </div>
 
+    <!-- INPUT -->
     <div class="input-area-wrapper">
         <div class="input-area">
             <input id="userInput" type="text" placeholder="Message Stellar Style..." autocomplete="off">
-            <button onclick="sendMessage()">
+            <button class="send-btn" onclick="sendMessage()">
                 <i class="fa-solid fa-arrow-up"></i>
             </button>
         </div>
     </div>
+
 </div>
 
-<div id="analyticsToast" class="analytics-toast">Tracking data synchronized...</div>
+<!-- TOAST -->
+<div id="analyticsToast" class="analytics-toast">Interaction recorded</div>
 
 <script>
 let ws;
@@ -413,7 +789,7 @@ async function trackLanguage(langCode) {
     formData.append('language', langCode);
     try {
         await fetch("/track_language", { method: "POST", body: formData });
-        showToast(`System: Language set to ${langCode.toUpperCase()}`);
+        showToast(`Data synced · ${langCode.toUpperCase()}`);
     } catch (e) { console.error("Tracking failed", e); }
 }
 
@@ -430,13 +806,11 @@ function connectWS() {
     ws = new WebSocket(`${protocol}://${location.host}/ws/chat`);
 
     ws.onmessage = (event) => {
-        // Remove thinking indicator when response arrives
         hideThinking();
-
         const data = JSON.parse(event.data);
-        if(data.reply) appendBotMessage(data.reply);
-        if(data.carousel && data.carousel.length > 0) renderProducts(data.carousel);
-        if(data.suggestions && data.suggestions.length > 0) renderSuggestions(data.suggestions);
+        if (data.reply) appendBotMessage(data.reply);
+        if (data.carousel && data.carousel.length > 0) renderProducts(data.carousel);
+        if (data.suggestions && data.suggestions.length > 0) renderSuggestions(data.suggestions);
     };
 
     ws.onclose = () => setTimeout(connectWS, 2000);
@@ -447,22 +821,27 @@ connectWS();
 function createWrapper(text, isUser) {
     const wrapper = document.createElement("div");
     wrapper.className = `msg-wrapper ${isUser ? "user-wrapper" : "bot-wrapper"}`;
+
+    if (!isUser) {
+        const avatar = document.createElement("div");
+        avatar.className = "bot-avatar";
+        avatar.innerHTML = `<i class="fa-solid fa-robot"></i>`;
+        wrapper.appendChild(avatar);
+    }
+
     const msg = document.createElement("div");
     msg.className = `msg ${isUser ? "user-msg" : "bot-msg"}`;
-    // Markdown support for bolding
     msg.innerHTML = isUser ? text : text.replace(/\*(.*?)\*/g, "<b>$1</b>");
     wrapper.appendChild(msg);
     return wrapper;
 }
 
-/**
- * SHOW THINKING INDICATOR
- */
 function showThinking() {
     if (thinkingEl) return;
     thinkingEl = document.createElement("div");
     thinkingEl.className = "msg-wrapper bot-wrapper";
     thinkingEl.innerHTML = `
+        <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
         <div class="msg bot-msg">
             <div class="thinking-indicator">
                 <div class="thinking-dot"></div>
@@ -498,8 +877,8 @@ async function openProductLink(url, productId) {
         const formData = new FormData();
         formData.append('product_id', productId);
         try {
-            fetch("/track_click", { method: "POST", body: formData }); 
-            showToast(`Metric: Engagement tracked`);
+            fetch("/track_click", { method: "POST", body: formData });
+            showToast(`Interaction recorded`);
         } catch (e) { console.error("Tracking failed", e); }
     }
     let targetUrl = url.trim();
@@ -510,45 +889,65 @@ async function openProductLink(url, productId) {
 function renderProducts(products) {
     const container = document.createElement("div");
     container.className = "msg-wrapper bot-wrapper";
-    
-    const carousel = document.createElement("div");
-    carousel.className = "carousel";
 
-    products.forEach(p => {
-        let imgUrl = p.images?.[0] || p.image_link || p.image || "https://placehold.co/200x150?text=Product";
-        const productId = p.id || p._id || "item_" + Math.random();
-        const directLink = p.image && p.image !== "#" ? p.image : imgUrl;
+    const carouselWrap = document.createElement("div");
+    carouselWrap.className = "carousel-container";
 
-        const card = document.createElement("div");
-        card.className = "product-card";
-        card.innerHTML = `
-            <img src="${imgUrl}" alt="${p.title}" onerror="this.src='https://placehold.co/200x150?text=No+Preview'">
-            <div class="product-title">${p.title || "Product"}</div>
-            <div class="product-price">${p.price?.toString().includes('$') ? '' : '$'}${p.price || "---"}</div>
-            <button class="view-btn" onclick="openProductLink('${directLink}', '${productId}')">View Offer</button>
-        `;
-        carousel.appendChild(card);
-    });
-
-    container.appendChild(carousel);
+    // Shimmer placeholders briefly
+    const shimmerRow = document.createElement("div");
+    shimmerRow.className = "carousel";
+    for (let i = 0; i < Math.min(products.length, 4); i++) {
+        const s = document.createElement("div");
+        s.className = "card-shimmer";
+        shimmerRow.appendChild(s);
+    }
+    carouselWrap.appendChild(shimmerRow);
+    container.appendChild(carouselWrap);
     chatBox.appendChild(container);
     scrollBottom();
+
+    // Replace shimmer with real cards
+    setTimeout(() => {
+        const carousel = document.createElement("div");
+        carousel.className = "carousel";
+
+        products.forEach(p => {
+            let imgUrl = p.images?.[0] || p.image_link || p.image || "https://placehold.co/200x150?text=Product";
+            const productId = p.id || p._id || "item_" + Math.random();
+            const directLink = p.image && p.image !== "#" ? p.image : imgUrl;
+
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = `
+                <div class="product-img-wrap">
+                    <img src="${imgUrl}" alt="${p.title || 'Product'}" onerror="this.src='https://placehold.co/200x150?text=No+Preview'">
+                </div>
+                <div class="product-title">${p.title || "Product"}</div>
+                <div class="product-price">${p.price?.toString().includes('$') ? '' : '$'}${p.price || "---"}</div>
+                <button class="view-btn" onclick="openProductLink('${directLink}', '${productId}')">View Product</button>
+            `;
+            carousel.appendChild(card);
+        });
+
+        carouselWrap.replaceChild(carousel, shimmerRow);
+        scrollBottom();
+    }, 500);
 }
 
 function renderSuggestions(list) {
     removeOldSuggestions();
     const container = document.createElement("div");
-    container.className = "suggestion-box"; 
+    container.className = "suggestion-box";
     const chips = document.createElement("div");
     chips.className = "chip-container";
-    
+
     list.forEach(s => {
         const chip = document.createElement("div");
         chip.className = "chip";
         chip.innerText = s;
-        chip.onclick = () => { 
-            input.value = s; 
-            sendMessage(); 
+        chip.onclick = () => {
+            input.value = s;
+            sendMessage();
         };
         chips.appendChild(chip);
     });
@@ -559,26 +958,27 @@ function renderSuggestions(list) {
 }
 
 function removeOldSuggestions() {
-    const oldOnes = document.querySelectorAll(".suggestion-box");
-    oldOnes.forEach(el => el.remove());
+    document.querySelectorAll(".suggestion-box").forEach(el => el.remove());
 }
 
 function sendMessage() {
     const text = input.value.trim();
     if (!text || ws.readyState !== WebSocket.OPEN) return;
-    
+
     removeOldSuggestions();
     appendUserMessage(text);
-    
-    // Show thinking state
     showThinking();
-    
     ws.send(text);
     input.value = "";
 }
 
 input.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
-function scrollBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
+
+function scrollBottom() {
+    requestAnimationFrame(() => {
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+    });
+}
 </script>
 
 </body>
