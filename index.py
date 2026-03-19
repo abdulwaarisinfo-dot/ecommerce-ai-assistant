@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Form
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -15,12 +14,8 @@ import re
 import certifi
 from bson import ObjectId
 import random
-# from bson import ObjectId
-# Import the analytics logic from our separate file
-import analytics
 
-# from analytics import router as analytics_router
-# from analytics import init_analytics, track_search, track_question, track_price_update
+import analytics
 
 # ============================================================
 # ------------------ INITIAL SETUP ---------------------------
@@ -117,7 +112,6 @@ def load_data_realtime():
 
         PRODUCTS_DATA = temp_products
 
-
         # ------------------------------------------------
         # BOT METADATA SYNC
         # ------------------------------------------------
@@ -153,7 +147,6 @@ def load_data_realtime():
 
     except Exception as e:
         logger.error(f"Auto-load Error: {e}")
-
 
 # ======================================================
 # OPTIONAL: AUTO LOAD ON STARTUP
@@ -265,7 +258,6 @@ def parse_price_range(query: str) -> Dict[str, float]:
 
     return price_range
 
-
 def score_product_relevance(query: str, product: Dict[str, Any], price_range: Dict[str, float]) -> float:
     query_lower = query.lower()
     score = 0.0
@@ -273,7 +265,7 @@ def score_product_relevance(query: str, product: Dict[str, Any], price_range: Di
     field_text = " ".join(
         [str(product.get(f, '')).lower() for f in ['title', 'description', 'color', 'material', 'category']]
     )
-
+    
     query_words = set(re.findall(r'\w+', query_lower))
     product_words = set(re.findall(r'\w+', field_text))
 
