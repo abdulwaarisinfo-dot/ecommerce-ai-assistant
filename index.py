@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Form
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -14,6 +15,9 @@ import re
 import certifi
 from bson import ObjectId
 import random
+# from bson import ObjectId
+# Import the analytics logic from our separate file
+import analytics
 
 # from analytics import router as analytics_router
 # from analytics import init_analytics, track_search, track_question, track_price_update
@@ -608,10 +612,12 @@ async def websocket_endpoint(websocket: WebSocket):
         except:
             pass
         
-# ========================================
-# -------- ADD NEW PRODUCTS DATA ---------
-# ========================================
+# Initialize analytics
+analytics.init_analytics(analytics_col)
 
+# ===============================
+# ADD NEW PRODUCT
+# ===============================
 @app.post("/Add_product")
 async def add_new_product(
     request: Request,
@@ -627,7 +633,6 @@ async def add_new_product(
     image: str = Form(...),
     image_link: str = Form(...)
 ):
-
     new_product = {
         "id": id,
         "title": title,
@@ -642,56 +647,47 @@ async def add_new_product(
         "image_link": image_link
     }
 
-    # Check DB connection
     if products_col is None:
         return templates.TemplateResponse(
             "index.html",
             {"request": request, "message": "Database not connected"}
         )
 
-    # Insert product
     products_col.insert_one(new_product)
-
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "message": "Product added successfully!"}
     )
 
-# ==========================================
-# ---------- DELETE PRODUCTS DATA -----------
-# =============================================
-
+# ===============================
+# DELETE PRODUCT
+# ===============================
 @app.post("/delete_product")
 async def delete_product(request: Request, id: str = Form(...)):
-
     try:
         result = products_col.delete_one({"_id": ObjectId(id)})
-
         if result.deleted_count == 0:
             return templates.TemplateResponse(
                 "index.html",
                 {"request": request, "message": "Product not found!"}
             )
-
         return templates.TemplateResponse(
             "index.html",
             {"request": request, "message": "Product deleted successfully!"}
         )
-
     except Exception as e:
         return templates.TemplateResponse(
             "index.html",
             {"request": request, "message": f"Error deleting product: {str(e)}"}
         )
-        
-# ========================================
-# -------- UPDATE PRODUCTS DATA ----------
-# ========================================  
 
+# ===============================
+# UPDATE PRODUCT
+# ===============================
 @app.post("/update_product")
 async def update_product(
     request: Request,
-    product_id: str = Form(...),  # Unique product ID
+    product_id: str = Form(...),
     title: str = Form(...),
     description: str = Form(...),
     category: str = Form(...),
@@ -703,8 +699,6 @@ async def update_product(
     image: str = Form(...),
     image_link: str = Form(...)
 ):
-
-    # Prepare update data
     update_data = {
         "title": title,
         "description": description,
@@ -718,17 +712,15 @@ async def update_product(
         "image_link": image_link
     }
 
-    # Check DB connection
     if products_col is None:
         return templates.TemplateResponse(
             "index.html",
             {"request": request, "message": "Database not connected"}
         )
 
-    # Perform the update
     result = products_col.update_one(
-        {"_id": ObjectId(product_id)},  # Filter by product ID
-        {"$set": update_data}           # Set the new values
+        {"_id": ObjectId(product_id)},
+        {"$set": update_data}
     )
 
     if result.matched_count == 0:
@@ -736,97 +728,49 @@ async def update_product(
     else:
         message = "Product updated successfully!"
 
+    # Track price update in analytics
+    analytics.track_price_update(analytics_col, product_id)
+
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "message": message}
     )
 
 # ===============================
-# INIT ANALYTICS
-# ===============================
-def init_analytics():
-    if analytics_col.count_documents({"type": "analytics"}) == 0:
-        analytics_col.insert_one({
-            "type": "analytics",
-            "total_searches": 0,
-            "total_clicks": 0,
-            "most_questions": {},
-            "product_search": {},
-            "product_clicks": {},
-            "price_updates": {},
-            "supported_languages": {}
-        })
-
-init_analytics()
-
-# ===============================
-# TRACK SEARCH
-# ===============================
-def track_search(query: str):
-    analytics_col.update_one(
-        {"type": "analytics"},
-        {"$inc": {"total_searches": 1, f"product_search.{query.lower()}": 1}}
-    )
-
-# ===============================
-# TRACK QUESTION
-# ===============================
-def track_question(question: str):
-    analytics_col.update_one(
-        {"type": "analytics"},
-        {"$inc": {f"most_questions.{question}": 1}}
-    )
-
-# ===============================
-# TRACK PRODUCT CLICK
+# TRACK PRODUCT CLICK (API)
 # ===============================
 @app.post("/track_click")
-async def track_click(product_id: str = Form(...)):
-    analytics_col.update_one(
-        {"type": "analytics"},
-        {"$inc": {"total_clicks": 1, f"product_clicks.{product_id}": 1}}
-    )
+async def track_click_api(product_id: str = Form(...)):
+    analytics.track_click(analytics_col, product_id)
     return {"status": "tracked"}
 
 # ===============================
-# TRACK PRICE UPDATE
+# TRACK SEARCH (CALL IN YOUR SEARCH LOGIC)
 # ===============================
-def track_price_update(product_id: str):
-    analytics_col.update_one(
-        {"type": "analytics"},
-        {"$inc": {f"price_updates.{product_id}": 1}}
-    )
+def track_search(query: str):
+    analytics.track_search(analytics_col, query)
 
 # ===============================
-# GET ANALYTICS DATA (JSON)
+# TRACK QUESTION (CALL IN YOUR CHATBOT LOGIC)
+# ===============================
+def track_question(question: str):
+    analytics.track_question(analytics_col, question)
+
+# ===============================
+# TRACK LANGUAGE (API)
+# ===============================
+@app.post("/track_language")
+async def track_language_api(language: str = Form(...)):
+    analytics.track_language(analytics_col, language)
+    return {"status": "tracked", "language": language}
+
+# ===============================
+# GET ANALYTICS (API)
 # ===============================
 @app.get("/api/analytics")
 async def get_analytics():
-    data = analytics_col.find_one({"type": "analytics"})
-    if "_id" in data:
-        data["_id"] = str(data["_id"])
-    return data
-
-# ======= TRACK LANGUAGES =========
-#  ---------------------------------
-#  ==================================
-
-# ===============================
-# TRACK LANGUAGE
-# ===============================
-@app.post("/track_language")
-async def track_language(language: str = Form(...)):
-    """
-    Tracks which language users are using in the chatbot.
-    Example: en, ur, hi, ar
-    """
-
-    analytics_col.update_one(
-        {"type": "analytics"},
-        {"$inc": {f"supported_languages.{language.lower()}": 1}}
-    )
-
-    return {"status": "tracked", "language": language}
+    data = analytics.get_analytics_data(analytics_col)
+    return JSONResponse(data)
 
 # ===============================
 # DASHBOARD PAGE
