@@ -3,48 +3,90 @@
 import asyncio
 import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from websockets.exceptions import ConnectionClosedOK
 
-# Import logic from index
 import index
 
 router = APIRouter()
 
 # =============================
-# --------- WEB SOCKETS --------
-# ==============================
+# -------- CONNECTIONS --------
+# =============================
+
+active_connections = set()
+
+# =============================
+# --------- WEBSOCKET ---------
+# =============================
 
 @router.websocket("/ws/chat")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     user_id = str(id(websocket))
 
-    index.load_data_realtime()
-
-    lang = "en"
-    initial_message = index.BOT_DATA.get(
-        "initial_message", {}
-    ).get(lang, "Hello! How can I help?")
-
-    await websocket.send_json({
-        "reply": initial_message,
-        "carousel": None,
-        "suggestions": index.get_dynamic_suggestions(user_id, "greeting", lang)
-    })
+    active_connections.add(user_id)
+    logging.info(f"Connected: {user_id} | Active: {len(active_connections)}")
 
     try:
-        while True:
-            msg = await websocket.receive_text()
+        # Load data safely
+        try:
+            index.load_data_realtime()
+        except Exception as e:
+            logging.warning(f"Data load issue: {e}")
 
-            bot = index.generate_bot_response(user_id, msg)
+        lang = "en"
+
+        initial_message = index.BOT_DATA.get(
+            "initial_message", {}
+        ).get(lang, "Hello! How can I help?")
+
+        await websocket.send_json({
+            "reply": initial_message,
+            "carousel": None,
+            "suggestions": index.get_dynamic_suggestions(user_id, "greeting", lang)
+        })
+
+        # =============================
+        # -------- MAIN LOOP ----------
+        # =============================
+
+        while True:
+            try:
+                msg = await asyncio.wait_for(
+                    websocket.receive_text(),
+                    timeout=300  # 5 min idle timeout
+                )
+            except asyncio.TimeoutError:
+                logging.info(f"Timeout: {user_id}")
+                break
+
+            try:
+                bot = index.generate_bot_response(user_id, msg)
+            except Exception as e:
+                logging.error(f"Bot error: {e}")
+                bot = {
+                    "reply": "Something went wrong. Please try again.",
+                    "carousel": None,
+                    "suggestions": []
+                }
 
             await asyncio.sleep(0.2)
             await websocket.send_json(bot)
 
-    except WebSocketDisconnect:
-        logging.info(f"User disconnected: {user_id}")
+    # =============================
+    # -------- CLEAN EXIT ---------
+    # =============================
+
+    except (WebSocketDisconnect, ConnectionClosedOK):
+        logging.info(f"Disconnected cleanly: {user_id}")
 
     except Exception as e:
-        logging.error(f"WebSocket error: {e}")
+        logging.error(f"WebSocket critical error: {e}")
+
+    finally:
+        active_connections.discard(user_id)
+        logging.info(f"Removed: {user_id} | Active: {len(active_connections)}")
+
         try:
             await websocket.close()
         except:
