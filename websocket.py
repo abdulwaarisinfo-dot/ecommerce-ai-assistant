@@ -4,7 +4,7 @@ import asyncio
 import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-# Import logic from main
+# Import logic from index
 import index
 
 router = APIRouter()
@@ -18,24 +18,24 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     user_id = str(id(websocket))
 
-    main.load_data_realtime()
+    index.load_data_realtime()
 
     lang = "en"
-    initial_message = main.BOT_DATA.get(
+    initial_message = index.BOT_DATA.get(
         "initial_message", {}
     ).get(lang, "Hello! How can I help?")
 
     await websocket.send_json({
         "reply": initial_message,
         "carousel": None,
-        "suggestions": main.get_dynamic_suggestions(user_id, "greeting", lang)
+        "suggestions": index.get_dynamic_suggestions(user_id, "greeting", lang)
     })
 
     try:
         while True:
             msg = await websocket.receive_text()
 
-            bot = main.generate_bot_response(user_id, msg)
+            bot = index.generate_bot_response(user_id, msg)
 
             await asyncio.sleep(0.2)
             await websocket.send_json(bot)
