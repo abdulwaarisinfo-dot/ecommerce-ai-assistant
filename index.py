@@ -16,6 +16,7 @@ from bson import ObjectId
 import random
 
 import analytics
+from websocket import router as websocket_router
 
 # ============================================================
 # ------------------ INITIAL SETUP ---------------------------
@@ -77,7 +78,6 @@ except Exception as e:
     products_col = None
     meta_col = None
     analytics_col = None
-
 
 # ======================================================
 # REALTIME DATA LOADER
@@ -562,47 +562,9 @@ async def get_home_data():
             "config": {"faq": {}, "smart_suggestions": {"en": [], "ur": []}},
             "error": "Failed to synchronize with MongoDB Atlas"
         }
-    
-# =============================
-# --------- WEB SOCKETS --------
-# ==============================
-
-@app.websocket("/ws/chat")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    user_id = str(id(websocket))
-
-    load_data_realtime()
-
-    lang = "en"
-    initial_message = BOT_DATA.get("initial_message", {}).get(lang, "Hello! How can I help?")
-
-    await websocket.send_json({
-        "reply": initial_message,
-        "carousel": None,
-        "suggestions": get_dynamic_suggestions(user_id, "greeting", lang)
-    })
-
-    try:
-        while True:
-            msg = await websocket.receive_text()
-
-
-            bot = generate_bot_response(user_id, msg)
-
-            await asyncio.sleep(0.2)
-
-            await websocket.send_json(bot)
-
-    except WebSocketDisconnect:
-        logging.info(f"User disconnected: {user_id}")
-
-    except Exception as e:
-        logging.error(f"WebSocket error: {e}")
-        try:
-            await websocket.close()
-        except:
-            pass
+        
+# WEBSOCKETS 
+app.include_router(websocket_router)
         
 # Initialize analytics
 analytics.init_analytics(analytics_col)
