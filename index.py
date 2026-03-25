@@ -344,6 +344,9 @@ def get_faq_response(query: str) -> Optional[Dict[str, str]]:
 
     if any(k in q for k in ["best quality", "qualities", "business quality"]):
         return faq.get("What's the Best Quality of Your Business")
+    
+    if any(k in q for k in ["How", "Hello", "How are you", "What's going on"]): # adds 10+
+        return faq.get("What's Going On")
 
     return None
 
