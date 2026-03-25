@@ -328,22 +328,32 @@ def filter_products(query: str, products: List[Dict[str, Any]]):
 
 def get_faq_response(query: str) -> Optional[Dict[str, str]]:
     faq = BOT_DATA.get("faq", {})
-    q = query.lower()
+    q = query.lower().strip()
 
-    if any(k in q for k in ["ship", "deliver", "ارسال", "versand", "delivery", "kab ayega"]):
-        return faq.get("shipping")
+    intents = {
+        "track": ["track", "tracking", "order status", "where is my order", "kahan hai", "ٹریک"],
+        "shipping": ["ship", "shipping", "delivery", "deliver", "kab ayega", "ارسال", "versand"],
+        "return": ["return", "refund", "exchange", "واپسی", "rückgabe"],
+        "why_choose": ["why choose", "why your product", "کیوں"],
+        "quality": ["best quality", "quality", "durable", "business quality"],
+        "greeting": ["hello", "hi", "hey"],
+        "status": ["how are you", "how r u", "what's going on", "whats going on"]
+    }
 
-    if any(k in q for k in ["return", "refund", "واپسی", "rückgabe", "exchange", "back"]):
-        return faq.get("return")
+    # 🎯 Priority matters (top = higher priority)
+    priority_order = [
+        "track",
+        "shipping",
+        "return",
+        "why_choose",
+        "quality",
+        "greeting",
+        "status"
+    ]
 
-    if any(k in q for k in ["track", "order", "ٹریک", "verfolgen", "status", "kahan hai"]):
-        return faq.get("track")
-
-    if any(k in q for k in ["why", "choose", "کیوں"]):
-        return faq.get("Why I Choose Your Products")
-
-    if any(k in q for k in ["best quality", "qualities", "business quality"]):
-        return faq.get("What's the Best Quality of Your Business")
+    for intent in priority_order:
+        if any(k in q for k in intents[intent]):
+            return faq.get(intent)
 
     return None
 
