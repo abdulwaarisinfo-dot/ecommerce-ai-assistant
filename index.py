@@ -330,22 +330,28 @@ def get_faq_response(query: str) -> Optional[Dict[str, str]]:
     faq = BOT_DATA.get("faq", {})
     q = query.lower()
 
+    # Shipping keywords
     if any(k in q for k in ["ship", "deliver", "ارسال", "versand", "delivery", "kab ayega"]):
         return faq.get("shipping")
 
+    # Return/Refund keywords
     if any(k in q for k in ["return", "refund", "واپسی", "rückgabe", "exchange", "back"]):
         return faq.get("return")
 
+    # Tracking keywords
     if any(k in q for k in ["track", "order", "ٹریک", "verfolgen", "status", "kahan hai"]):
         return faq.get("track")
 
+    # Why Choose Us
     if any(k in q for k in ["why", "choose", "کیوں"]):
         return faq.get("Why I Choose Your Products")
 
+    # Quality check
     if any(k in q for k in ["best quality", "qualities", "business quality"]):
         return faq.get("What's the Best Quality of Your Business")
     
-    if any(k in q for k in ["How", "Hello", "How are you", "What's going on"]): 
+    # Greetings (Lowercased to match 'q')
+    if any(k in q for k in ["how", "hello", "how are you", "what's going on"]): 
         return faq.get("Hello")
 
     return None
