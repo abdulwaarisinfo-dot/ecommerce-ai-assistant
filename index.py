@@ -61,7 +61,7 @@ try:
         serverSelectionTimeoutMS=10000
     )
 
-    db = client["ecommerce"]
+    db = client["chatbot"]
 
     # Collections
     products_col = db["products"]
