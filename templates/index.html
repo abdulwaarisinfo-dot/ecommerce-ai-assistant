@@ -1,1856 +1,1361 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxeStore | Professional Ops</title>
-
-    <!-- LIBRARIES -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
-
-        /* ===================== CSS VARIABLES ===================== */
-        :root {
-            --sidebar-width: 260px;
-            --primary: #add8e6;
-            --primary-dark: #7ec8e3;
-            --primary-hover: #93c8e0;
-            --primary-text: #1a6a8a;
-            --accent: #64748b;
-            --bg-main: #ffffff;
-            --bg-side: #add8e6;
-            --border: #d4eef7;
-            --card-gradient-start: #e8f6fb;
-            --card-gradient-end: #ffffff;
-            --shadow-blue: rgba(173, 216, 230, 0.4);
-            --text-dark: #0f172a;
-            --text-muted: #475569;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-main);
-            color: var(--text-dark);
-            margin: 0;
-            overflow-x: hidden;
-            font-size: 14px;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-        h1 { font-size: 22px; }
-        h2 { font-size: 20px; }
-        h3 { font-size: 18px; }
-
-        .mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* ===================== STICKY TOP HEADER ===================== */
-        .sticky-top-header {
-            position: sticky;
-            top: 0;
-            z-index: 80;
-            background: #add8e6;
-            border-bottom: 1px solid var(--primary-dark);
-            padding: 0.75rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 12px var(--shadow-blue);
-        }
-
-        .sticky-top-header .header-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--primary-text);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* ===================== SIDEBAR — RIGHT SIDE ===================== */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            right: 0;
-            left: auto;
-            top: 0;
-            background: var(--bg-side);
-            border-left: 1px solid var(--primary-dark);
-            padding: 2.5rem 1.25rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            overflow-y: auto;
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sidebar.collapsed {
-            transform: translateX(100%);
-        }
-
-        @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(100%);
-                background: rgba(173, 216, 230, 0.92);
-                backdrop-filter: blur(12px);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-right: 0 !important;
-            }
-            .sticky-top-header {
-                margin-right: 0 !important;
-            }
-            .site-footer {
-                margin-right: 0 !important;
-            }
-            .sidebar-overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(173, 216, 230, 0.25);
-                z-index: 90;
-                backdrop-filter: blur(2px);
-            }
-            .sidebar-overlay.active {
-                display: block;
-            }
-            .main-content-inner {
-                padding: 1rem !important;
-            }
-        }
-
-        /* ===================== MAIN CONTENT ===================== */
-        .main-content {
-            margin-right: var(--sidebar-width);
-            margin-left: 0;
-            min-height: 100vh;
-            background: #ffffff;
-            transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .main-content-inner {
-            padding: 2rem 2.5rem;
-        }
-
-        @media (max-width: 640px) {
-            .main-content-inner { padding: 1rem; }
-        }
-
-        /* ===================== NAV ITEMS ===================== */
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            border-radius: 999px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--primary-text);
-            transition: all 0.25s ease;
-            cursor: pointer;
-            margin-bottom: 6px;
-        }
-
-        .nav-item:hover {
-            color: #0f4f6b;
-            box-shadow: 0 0 0 3px rgba(126, 200, 227, 0.35), 0 4px 12px rgba(126, 200, 227, 0.2);
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-item.active {
-            background: rgba(255, 255, 255, 0.6);
-            color: #0f4f6b;
-            font-weight: 700;
-            box-shadow: 0 2px 12px rgba(126, 200, 227, 0.3);
-        }
-
-        /* ===================== GLASS CARDS ===================== */
-        .glass-card {
-            background: linear-gradient(135deg, var(--card-gradient-start) 0%, var(--card-gradient-end) 100%);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 1px 6px rgba(173, 216, 230, 0.15);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .glass-card:hover {
-            box-shadow: 0 4px 20px rgba(173, 216, 230, 0.3);
-        }
-
-        /* ===================== INPUTS ===================== */
-        .input-field {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: 999px;
-            border: 1px solid #c5e8f4;
-            background: #ffffff;
-            font-size: 14px;
-            color: var(--text-dark);
-            transition: all 0.2s;
-            outline: none;
-        }
-
-        .input-field:focus {
-            border-color: var(--primary-dark);
-            box-shadow: 0 0 0 3px rgba(173, 216, 230, 0.25);
-        }
-
-        textarea.input-field { border-radius: 14px; }
-
-        /* ===================== BUTTONS ===================== */
-        .btn-primary {
-            background: var(--primary);
-            color: var(--primary-text);
-            padding: 12px 24px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 14px;
-            transition: all 0.2s;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border: none;
-            box-shadow: 0 4px 14px var(--shadow-blue);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            box-shadow: 0 6px 20px var(--shadow-blue);
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            padding: 10px 16px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--primary-text);
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .btn-secondary:hover {
-            background: var(--primary);
-            border-color: var(--primary-dark);
-        }
-
-        /* ===================== TABS ===================== */
-        .tab-pane { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .tab-pane.active { display: block; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: var(--primary-dark); border-radius: 10px; }
-
-        /* ===================== GROWTH TAGS ===================== */
-        .growth-tag {
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-weight: 700;
-        }
-
-        /* ===================== TRENDING BADGE ===================== */
-        .trending-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--primary);
-            color: var(--primary-text);
-            font-size: 9px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 999px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        /* ===================== FLOATING CHAT ===================== */
-        .floating-chat {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            background: var(--primary);
-            color: var(--primary-text);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 10px 25px var(--shadow-blue);
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-decoration: none;
-            border: 2px solid var(--primary-dark);
-        }
-
-        .floating-chat:hover {
-            transform: scale(1.1);
-            box-shadow: 0 14px 30px var(--shadow-blue);
-        }
-
-        /* ===================== MOBILE TOGGLE ===================== */
-        .mobile-toggle {
-            display: none;
-            cursor: pointer;
-            padding: 8px 12px;
-            font-size: 18px;
-            color: var(--primary-text);
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 999px;
-            border: none;
-            transition: all 0.2s;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .mobile-toggle:hover { background: rgba(255, 255, 255, 0.8); }
-
-        @media (max-width: 1024px) {
-            .mobile-toggle { display: flex; }
-        }
-
-        /* ===================== FLOATING MOBILE NAV BUTTON ===================== */
-        .floating-nav-btn {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 52px;
-            height: 52px;
-            background: var(--primary);
-            color: var(--primary-text);
-            border-radius: 50%;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: 0 8px 20px var(--shadow-blue);
-            cursor: pointer;
-            z-index: 999;
-            border: 2px solid var(--primary-dark);
-            transition: all 0.3s;
-        }
-
-        @media (max-width: 1024px) {
-            .floating-nav-btn { display: flex; }
-        }
-
-        /* ===================== TOAST ===================== */
-        #toast-container {
-            position: fixed;
-            top: 80px;
-            right: 24px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-
-        .toast {
-            background: var(--primary);
-            color: var(--primary-text);
-            border: 1px solid var(--primary-dark);
-            border-radius: 999px;
-            padding: 12px 20px;
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 8px 24px var(--shadow-blue);
-            animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOutUp 0.5s ease 3.5s forwards;
-            pointer-events: auto;
-            min-width: 260px;
-        }
-
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(60px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes fadeOutUp {
-            from { opacity: 1; transform: translateY(0); }
-            to   { opacity: 0; transform: translateY(-20px); }
-        }
-
-        /* ===================== CLICK ALERT ===================== */
-        .click-alert {
-            background: linear-gradient(90deg, var(--primary) 0%, #7ec8e3 100%);
-            border: 1px solid var(--primary-dark);
-            border-radius: 12px;
-            padding: 12px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--primary-text);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        /* ===================== DASHBOARD GRID ===================== */
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(1, 1fr);
-            gap: 1.25rem;
-        }
-
-        @media (min-width: 640px)  { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1280px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
-
-        @media (max-width: 640px) {
-            #full-inventory-grid { gap: 1.25rem; }
-        }
-
-        /* ===================== DYNAMIC TEXT SCALING ===================== */
-        .stat-value {
-            font-size: clamp(1.5rem, 3vw, 2.25rem);
-            font-weight: 800;
-            color: var(--text-dark);
-            line-height: 1;
-        }
-
-        /* ===================== MOBILE HIDE ===================== */
-        @media (max-width: 640px) {
-            .hide-mobile { display: none !important; }
-        }
-
-        /* ===================== IMG UPLOAD AREA ===================== */
-        .img-upload-area {
-            position: relative;
-            border: 2px dashed var(--primary-dark);
-            border-radius: 14px;
-            background: linear-gradient(135deg, #eaf6fb 0%, #fff 100%);
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .img-upload-area:hover {
-            border-color: var(--primary-text);
-            background: linear-gradient(135deg, #d4eef7 0%, #fff 100%);
-        }
-
-        /* ===================== CONFIRM POPUP ===================== */
-        .confirm-popup {
-            position: fixed;
-            inset: 0;
-            background: rgba(173, 216, 230, 0.2);
-            backdrop-filter: blur(4px);
-            z-index: 3000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .confirm-box {
-            background: #ffffff;
-            border: 2px solid var(--primary);
-            border-radius: 20px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 20px 50px var(--shadow-blue);
-            text-align: center;
-        }
-
-        /* ===================== FOOTER ===================== */
-        .site-footer {
-            background: #ffffff;
-            border-top: 1px solid var(--border);
-            padding: 1.5rem 2.5rem;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-right: var(--sidebar-width);
-            transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .site-footer p, .site-footer a {
-            color: var(--primary-text);
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .site-footer a:hover { text-decoration: underline; }
-
-        .footer-links { display: flex; gap: 1.25rem; }
-
-        /* ===================== CONNECTION STATUS ===================== */
-        #connection-status {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            color: var(--primary-text);
-        }
-
-        /* ===================== FORM LABEL ===================== */
-        .form-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--primary-text);
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        /* ===================== CATEGORY SELECT ===================== */
-        select.input-field {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a6a8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            padding-right: 36px;
-        }
-
-        /* ===================== VALIDATION ===================== */
-        .field-error {
-            font-size: 11px;
-            color: #ef4444;
-            margin-top: 4px;
-            display: none;
-            padding-left: 12px;
-        }
-
-        .input-field.invalid {
-            border-color: #ef4444;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-        }
-
-        /* ===================== SIDEBAR LOGO ===================== */
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            padding: 0 4px;
-        }
-
-        .sidebar-logo .logo-icon {
-            width: 38px;
-            height: 38px;
-            background: rgba(255, 255, 255, 0.7);
-            color: var(--primary-text);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 16px;
-            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.4);
-        }
-
-        .sidebar-logo .logo-name {
-            font-weight: 800;
-            font-size: 15px;
-            color: var(--primary-text);
-            letter-spacing: -0.02em;
-        }
-
-        .nav-section-label {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: rgba(26, 106, 138, 0.6);
-            padding: 0 14px;
-            margin: 12px 0 6px;
-        }
-
-        /* ===================== EDIT MODAL HEADER ===================== */
-        #edit-modal .modal-header {
-            background: var(--primary);
-            border-bottom: 1px solid var(--primary-dark);
-        }
-
-        /* ===================== TOP SELLING CARD ===================== */
-        .top-selling-card { border-top: 3px solid var(--primary); }
-
-        /* ===================== SIDEBAR COLLAPSE BTN ===================== */
-        .sidebar-collapse-btn {
-            position: absolute;
-            top: 50%;
-            left: -18px;
-            transform: translateY(-50%);
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
-            border: 2px solid var(--primary-dark);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 110;
-            color: var(--primary-text);
-            font-size: 12px;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px var(--shadow-blue);
-        }
-
-        .sidebar-collapse-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-50%) scale(1.1);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixup8k — Product CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ═══════════════════════════ DESIGN TOKENS ═══════════════════════════ */
+:root {
+  --bg:          #f7f8f5;
+  --surface:     #ffffff;
+  --surface-2:   #f2f3f0;
+  --surface-3:   #eaebe7;
+  --sidebar-bg:  #1a1f16;
+  --sidebar-w:   232px;
+
+  --ink:         #111410;
+  --ink-2:       #3a3e35;
+  --ink-3:       #7a7f72;
+  --ink-4:       #b0b5a8;
+
+  --green:       #4f7a3a;
+  --green-2:     #6aab50;
+  --green-soft:  #e8f3e2;
+  --green-glow:  rgba(79,122,58,0.18);
+
+  --sage:        #8aab7a;
+  --sage-soft:   #f0f5ec;
+
+  --amber:       #d97706;
+  --red:         #dc2626;
+  --blue:        #2563eb;
+
+  --border:      #e4e6e0;
+  --border-2:    #d4d6ce;
+  --shadow-xs:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:   0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,0.10);
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-full: 9999px;
+  --font: 'Geist', sans-serif;
+  --mono: 'Geist Mono', monospace;
+  --ease: cubic-bezier(0.4,0,0.2,1);
+  --t: 0.18s var(--ease);
+}
+
+/* ═══════════════════════════ RESET ═══════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; font-family:var(--font); background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; font-size:14px; }
+button,select,input,textarea { font-family:inherit; }
+a { text-decoration:none; color:inherit; }
+img { display:block; }
+
+/* ═══════════════════════════ SCROLLBAR ═══════════════════════════ */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:4px; }
+
+/* ═══════════════════════════ LAYOUT SHELL ═══════════════════════════ */
+.app { display:flex; height:100vh; overflow:hidden; }
+
+/* ═══════════════════════════ SIDEBAR ═══════════════════════════ */
+.sidebar {
+  width:var(--sidebar-w);
+  flex-shrink:0;
+  background:var(--sidebar-bg);
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+  transition:width var(--t);
+  position:relative;
+  z-index:50;
+}
+
+.sidebar-logo {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:20px 18px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.logo-mark {
+  width:32px; height:32px;
+  background:var(--green-2);
+  border-radius:var(--r-sm);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  font-size:14px; font-weight:800; color:#fff;
+  box-shadow:0 2px 8px rgba(106,171,80,0.4);
+}
+.logo-text { font-size:15px; font-weight:700; color:#fff; letter-spacing:-0.3px; }
+.logo-sub  { font-size:10px; color:rgba(255,255,255,0.35); font-weight:500; margin-top:1px; }
+
+/* Nav sections */
+.nav-section { padding:14px 10px 4px; }
+.nav-label {
+  font-size:9.5px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase;
+  color:rgba(255,255,255,0.28); padding:0 8px; margin-bottom:4px;
+}
+.nav-item {
+  display:flex; align-items:center; gap:9px;
+  padding:9px 10px; border-radius:var(--r-md);
+  font-size:13px; font-weight:500; color:rgba(255,255,255,0.55);
+  cursor:pointer; transition:var(--t);
+  margin-bottom:1px; user-select:none;
+}
+.nav-item i { width:16px; text-align:center; font-size:13px; flex-shrink:0; }
+.nav-item:hover { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.9); }
+.nav-item.active {
+  background:rgba(106,171,80,0.18);
+  color:#8fd476;
+  font-weight:600;
+}
+.nav-item.active i { color:#8fd476; }
+
+.sidebar-footer {
+  margin-top:auto;
+  padding:12px 10px;
+  border-top:1px solid rgba(255,255,255,0.07);
+}
+.user-badge {
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px; border-radius:var(--r-md);
+  background:rgba(255,255,255,0.05);
+}
+.user-ava {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--green-2); display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.user-name { font-size:12px; font-weight:600; color:rgba(255,255,255,0.8); }
+.user-role { font-size:10px; color:rgba(255,255,255,0.3); }
+
+/* ═══════════════════════════ MAIN AREA ═══════════════════════════ */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* Top bar */
+.topbar {
+  height:56px; flex-shrink:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; gap:16px;
+}
+.topbar-left { display:flex; align-items:center; gap:16px; min-width:0; }
+.page-title { font-size:16px; font-weight:700; color:var(--ink); letter-spacing:-0.3px; }
+.breadcrumb { font-size:12px; color:var(--ink-3); }
+.breadcrumb span { color:var(--ink); font-weight:500; }
+
+.topbar-right { display:flex; align-items:center; gap:8px; }
+.conn-pill {
+  display:flex; align-items:center; gap:6px;
+  padding:5px 12px; border-radius:var(--r-full);
+  border:1px solid var(--border); background:var(--surface);
+  font-size:11px; font-weight:600; color:var(--ink-3);
+}
+.conn-dot { width:7px; height:7px; border-radius:50%; background:#f59e0b; animation:pulse 2s infinite; }
+.conn-dot.online  { background:#22c55e; animation:none; }
+.conn-dot.offline { background:#ef4444; animation:none; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.icon-btn {
+  width:34px; height:34px; border-radius:var(--r-sm);
+  border:1px solid var(--border); background:var(--surface);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:var(--t); color:var(--ink-3); font-size:13px;
+}
+.icon-btn:hover { background:var(--surface-2); color:var(--ink); }
+
+/* Content area */
+.content { flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:0; }
+
+/* ═══════════════════════════ AUTH GATE ═══════════════════════════ */
+#auth-overlay {
+  position:fixed; inset:0; z-index:1000;
+  background:linear-gradient(135deg,#f0f4ec 0%,#ffffff 60%,#e8f3e2 100%);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.auth-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:40px;
+  width:100%; max-width:400px;
+  box-shadow:var(--shadow-lg);
+}
+.auth-logo { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
+.auth-logo .logo-mark { width:40px; height:40px; font-size:17px; }
+.auth-logo-text h1 { font-size:20px; font-weight:800; letter-spacing:-0.5px; }
+.auth-logo-text p { font-size:12px; color:var(--ink-3); margin-top:2px; }
+.auth-field { margin-bottom:16px; }
+.auth-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--ink-3); display:block; margin-bottom:6px; }
+.auth-input {
+  width:100%; padding:11px 14px;
+  border:1.5px solid var(--border); border-radius:var(--r-md);
+  background:var(--surface-2); font-size:14px; color:var(--ink);
+  outline:none; transition:var(--t);
+}
+.auth-input:focus { border-color:var(--green); background:var(--surface); box-shadow:0 0 0 3px var(--green-glow); }
+.auth-btn {
+  width:100%; padding:12px;
+  background:var(--green); color:#fff;
+  border:none; border-radius:var(--r-md);
+  font-size:14px; font-weight:700; cursor:pointer;
+  transition:var(--t); display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 4px 16px rgba(79,122,58,0.3);
+}
+.auth-btn:hover { background:var(--green-2); transform:translateY(-1px); }
+.auth-error { display:none; margin-top:14px; text-align:center; font-size:12px; font-weight:600; color:var(--red); letter-spacing:0.3px; }
+
+/* ═══════════════════════════ TABS ═══════════════════════════ */
+.tab-pane { display:none; }
+.tab-pane.active { display:block; animation:fadeUp .25s var(--ease) both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ═══════════════════════════ STAT CARDS ═══════════════════════════ */
+.stats-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:20px;
+}
+@media(max-width:1200px){ .stats-grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:640px){ .stats-grid{grid-template-columns:1fr;} }
+
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:20px;
+  box-shadow:var(--shadow-xs); transition:var(--t);
+}
+.stat-card:hover { box-shadow:var(--shadow-sm); transform:translateY(-1px); }
+.stat-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.stat-label { font-size:11.5px; font-weight:600; color:var(--ink-3); }
+.stat-icon {
+  width:32px; height:32px; border-radius:var(--r-sm);
+  display:flex; align-items:center; justify-content:center; font-size:13px;
+}
+.stat-icon.green  { background:var(--green-soft); color:var(--green); }
+.stat-icon.amber  { background:#fef3c7; color:var(--amber); }
+.stat-icon.blue   { background:#eff6ff; color:var(--blue); }
+.stat-icon.purple { background:#f5f3ff; color:#7c3aed; }
+
+.stat-val {
+  font-size:28px; font-weight:800; letter-spacing:-1px; color:var(--ink);
+  line-height:1; font-variant-numeric:tabular-nums;
+}
+.stat-footer { display:flex; align-items:center; gap:6px; margin-top:10px; }
+.stat-badge {
+  font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:var(--r-full);
+}
+.stat-badge.up   { background:#dcfce7; color:#16a34a; }
+.stat-badge.flat { background:var(--surface-2); color:var(--ink-3); }
+.stat-sub { font-size:11px; color:var(--ink-4); }
+
+/* ═══════════════════════════ SECTION HEADER ═══════════════════════════ */
+.section-hd {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px; flex-wrap:wrap; gap:10px;
+}
+.section-title { font-size:15px; font-weight:700; color:var(--ink); letter-spacing:-0.2px; }
+.section-sub { font-size:12px; color:var(--ink-3); margin-top:2px; }
+
+/* ═══════════════════════════ BTN SYSTEM ═══════════════════════════ */
+.btn {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:8px 16px; border-radius:var(--r-md);
+  font-size:13px; font-weight:600; cursor:pointer;
+  transition:var(--t); border:none; outline:none;
+}
+.btn-primary {
+  background:var(--green); color:#fff;
+  box-shadow:0 2px 8px rgba(79,122,58,0.25);
+}
+.btn-primary:hover { background:var(--green-2); transform:translateY(-1px); }
+.btn-ghost {
+  background:transparent; color:var(--ink-2);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover { background:var(--surface-2); }
+.btn-sm { padding:6px 12px; font-size:12px; }
+.btn-danger { background:#fee2e2; color:var(--red); }
+.btn-danger:hover { background:#fecaca; }
+
+/* ═══════════════════════════ SEARCH BAR ═══════════════════════════ */
+.search-wrap { position:relative; }
+.search-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-4); font-size:12px; }
+.search-input {
+  padding:9px 12px 9px 34px;
+  border:1.5px solid var(--border); border-radius:var(--r-md);
+  background:var(--surface); font-size:13px; color:var(--ink);
+  outline:none; transition:var(--t); width:260px;
+}
+.search-input:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-glow); }
+.search-input::placeholder { color:var(--ink-4); }
+
+/* ═══════════════════════════ PRODUCTS GRID ═══════════════════════════ */
+.products-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+  gap:16px;
+}
+
+/* Product Card */
+.product-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); overflow:hidden;
+  display:flex; flex-direction:column;
+  transition:var(--t); box-shadow:var(--shadow-xs);
+  position:relative;
+}
+.product-card:hover {
+  border-color:var(--green);
+  box-shadow:0 8px 28px rgba(0,0,0,0.09), 0 0 0 1px var(--green);
+  transform:translateY(-2px);
+}
+
+.pc-img-wrap {
+  position:relative; width:100%; height:180px;
+  background:var(--surface-2); overflow:hidden;
+}
+.pc-img-wrap img {
+  width:100%; height:100%; object-fit:contain;
+  padding:16px; transition:transform .35s var(--ease);
+}
+.product-card:hover .pc-img-wrap img { transform:scale(1.04); }
+
+.pc-badge {
+  position:absolute; top:10px; left:10px;
+  font-size:9.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase;
+  padding:3px 8px; border-radius:var(--r-full);
+}
+.pc-badge.trending { background:#fff3cd; color:#92400e; }
+.pc-badge.new      { background:var(--green-soft); color:var(--green); }
+
+.pc-cat {
+  position:absolute; top:10px; right:10px;
+  font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px;
+  background:rgba(255,255,255,0.92); border:1px solid var(--border);
+  padding:2px 7px; border-radius:var(--r-full); color:var(--ink-3);
+  backdrop-filter:blur(8px);
+}
+
+.pc-body { padding:14px 16px; flex:1; display:flex; flex-direction:column; }
+.pc-title {
+  font-size:13.5px; font-weight:700; color:var(--ink);
+  line-height:1.35; margin-bottom:6px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.pc-meta { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.pc-price { font-size:17px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
+.pc-id { font-size:10px; font-family:var(--mono); color:var(--ink-4); background:var(--surface-2); padding:2px 6px; border-radius:4px; }
+
+.pc-stars { display:flex; align-items:center; gap:3px; margin-bottom:12px; }
+.pc-stars i { font-size:11px; color:#f59e0b; }
+.pc-stars span { font-size:11px; font-weight:600; color:var(--ink-3); margin-left:2px; }
+
+.pc-detail { font-size:11.5px; color:var(--ink-3); line-height:1.5; flex:1; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+.pc-footer {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  padding:12px 16px;
+  border-top:1px solid var(--border);
+  background:var(--surface-2);
+}
+.pc-footer .btn { justify-content:center; padding:7px 10px; font-size:12px; border-radius:var(--r-sm); }
+
+/* ═══════════════════════════ DASHBOARD ═══════════════════════════ */
+.dash-grid { display:grid; grid-template-columns:1fr 360px; gap:18px; }
+@media(max-width:1100px){ .dash-grid{grid-template-columns:1fr;} }
+
+.chart-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:20px; box-shadow:var(--shadow-xs);
+}
+.chart-title { font-size:14px; font-weight:700; margin-bottom:4px; }
+.chart-sub { font-size:11.5px; color:var(--ink-3); margin-bottom:18px; }
+
+.recent-list { display:flex; flex-direction:column; gap:8px; }
+.recent-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:var(--r-md);
+  border:1px solid var(--border); background:var(--surface);
+  transition:var(--t); cursor:default;
+}
+.recent-item:hover { border-color:var(--sage); background:var(--sage-soft); }
+.ri-img {
+  width:40px; height:40px; border-radius:var(--r-sm);
+  overflow:hidden; background:var(--surface-2); flex-shrink:0;
+}
+.ri-img img { width:100%; height:100%; object-fit:contain; padding:4px; }
+.ri-info { flex:1; min-width:0; }
+.ri-name { font-size:12.5px; font-weight:700; color:var(--ink); truncate:ellipsis; overflow:hidden; white-space:nowrap; }
+.ri-cat { font-size:10.5px; color:var(--ink-3); margin-top:1px; }
+.ri-price { font-size:13px; font-weight:800; color:var(--green); font-variant-numeric:tabular-nums; }
+
+/* ═══════════════════════════ ANALYTICS ═══════════════════════════ */
+.analytics-grid { display:grid; grid-template-columns:1fr 320px; gap:18px; }
+@media(max-width:1100px){ .analytics-grid{grid-template-columns:1fr;} }
+
+.table-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow-xs);
+}
+.table-head { padding:16px 20px; border-bottom:1px solid var(--border); }
+.table-wrap { overflow-x:auto; }
+table.crm-table { width:100%; border-collapse:collapse; }
+table.crm-table th {
+  padding:10px 16px; text-align:left;
+  font-size:10.5px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
+  color:var(--ink-3); background:var(--surface-2);
+  border-bottom:1px solid var(--border);
+}
+table.crm-table td {
+  padding:12px 16px; font-size:13px; color:var(--ink);
+  border-bottom:1px solid var(--border);
+}
+table.crm-table tr:last-child td { border-bottom:none; }
+table.crm-table tr:hover td { background:var(--surface-2); }
+.synced-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:var(--r-full); background:var(--green-soft); color:var(--green); font-size:10.5px; font-weight:700; }
+.synced-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green-2); }
+
+.q-stream { display:flex; flex-direction:column; gap:6px; max-height:380px; overflow-y:auto; }
+.q-item {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+  padding:10px 12px; border-radius:var(--r-md);
+  background:var(--surface-2); border:1px solid var(--border);
+}
+.q-text { font-size:12px; color:var(--ink-2); font-style:italic; line-height:1.45; flex:1; }
+.q-count { font-size:11px; font-weight:700; color:var(--green); flex-shrink:0; background:var(--green-soft); padding:2px 7px; border-radius:var(--r-full); }
+
+/* ═══════════════════════════ ADD PRODUCT FORM ═══════════════════════════ */
+.form-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); box-shadow:var(--shadow-xs);
+  max-width:900px;
+}
+.form-card-head {
+  padding:20px 24px; border-bottom:1px solid var(--border);
+}
+.form-card-body { padding:24px; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:720px){ .form-grid{grid-template-columns:1fr;} }
+.form-group { margin-bottom:0; }
+.form-label { font-size:11px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:6px; }
+.form-input {
+  width:100%; padding:10px 14px;
+  border:1.5px solid var(--border); border-radius:var(--r-md);
+  background:var(--surface-2); font-size:13.5px; color:var(--ink);
+  outline:none; transition:var(--t);
+}
+.form-input:focus { border-color:var(--green); background:var(--surface); box-shadow:0 0 0 3px var(--green-glow); }
+.form-input::placeholder { color:var(--ink-4); }
+textarea.form-input { resize:vertical; min-height:90px; border-radius:var(--r-md); }
+select.form-input {
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7f72'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 12px center; padding-right:32px;
+}
+.form-col-span { grid-column:1/-1; }
+.img-preview-box {
+  width:100%; height:160px; border:2px dashed var(--border);
+  border-radius:var(--r-md); display:flex; flex-direction:column;
+  align-items:center; justify-content:center; overflow:hidden;
+  background:var(--surface-2); transition:var(--t); cursor:pointer;
+}
+.img-preview-box:hover { border-color:var(--sage); }
+.img-preview-box img { max-height:100%; max-width:100%; object-fit:contain; display:none; }
+.img-preview-placeholder { text-align:center; color:var(--ink-4); pointer-events:none; }
+.img-preview-placeholder i { font-size:24px; margin-bottom:6px; color:var(--ink-4); }
+.img-preview-placeholder p { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; }
+.form-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+
+/* ═══════════════════════════ CONFIRM MODAL ═══════════════════════════ */
+.modal-overlay {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(17,20,16,0.4); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:32px; max-width:380px; width:100%;
+  box-shadow:var(--shadow-lg); text-align:center;
+  animation:fadeUp .2s var(--ease) both;
+}
+.modal-icon { width:52px; height:52px; border-radius:50%; background:#fee2e2; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--red); }
+.modal-title { font-size:17px; font-weight:800; margin-bottom:8px; }
+.modal-body  { font-size:13px; color:var(--ink-3); margin-bottom:24px; line-height:1.6; }
+.modal-actions { display:flex; gap:10px; justify-content:center; }
+
+/* ═══════════════════════════ EDIT MODAL ═══════════════════════════ */
+#edit-modal-overlay {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(17,20,16,0.4); backdrop-filter:blur(4px);
+  display:none; align-items:flex-start; justify-content:center;
+  padding:30px 20px; overflow-y:auto;
+}
+#edit-modal-overlay.open { display:flex; }
+.edit-modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-xl); width:100%; max-width:800px;
+  box-shadow:var(--shadow-lg); overflow:hidden; margin:auto;
+  animation:fadeUp .2s var(--ease) both;
+}
+.edit-modal-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 24px; border-bottom:1px solid var(--border);
+  background:var(--sidebar-bg);
+}
+.edit-modal-head h3 { font-size:15px; font-weight:700; color:#fff; }
+.edit-modal-head p  { font-size:11px; color:rgba(255,255,255,0.4); margin-top:2px; font-family:var(--mono); }
+.close-btn {
+  width:30px; height:30px; border-radius:var(--r-sm);
+  background:rgba(255,255,255,0.1); border:none; cursor:pointer;
+  color:rgba(255,255,255,0.6); font-size:14px; display:flex; align-items:center; justify-content:center; transition:var(--t);
+}
+.close-btn:hover { background:rgba(255,255,255,0.18); color:#fff; }
+.edit-modal-body { padding:24px; }
+.edit-modal-foot { padding:14px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; background:var(--surface-2); }
+
+/* ═══════════════════════════ TOAST ═══════════════════════════ */
+#toast-container { position:fixed; top:70px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+.toast {
+  background:var(--sidebar-bg); color:#fff;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--r-md); padding:11px 16px;
+  font-size:12.5px; font-weight:600;
+  display:flex; align-items:center; gap:9px;
+  box-shadow:var(--shadow-lg);
+  animation:slideIn .3s var(--ease) both, fadeOut .4s ease 3.2s forwards;
+  pointer-events:auto; min-width:240px;
+}
+.toast i { font-size:14px; color:var(--green-2); }
+@keyframes slideIn { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+@keyframes fadeOut { to{opacity:0;transform:translateX(20px)} }
+
+/* ═══════════════════════════ EMPTY STATE ═══════════════════════════ */
+.empty-state { grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--ink-3); }
+.empty-state i { font-size:36px; margin-bottom:12px; opacity:.4; }
+.empty-state h3 { font-size:15px; font-weight:700; color:var(--ink-2); margin-bottom:6px; }
+.empty-state p  { font-size:13px; }
+
+/* ═══════════════════════════ RESPONSIVE ═══════════════════════════ */
+@media(max-width:768px){
+  .sidebar { display:none; }
+  .topbar { padding:0 16px; }
+  .content { padding:16px; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
 </head>
 <body>
 
-<!-- ========== TOAST CONTAINER ========== -->
+<!-- ── TOAST CONTAINER ──────────────────── -->
 <div id="toast-container"></div>
 
-<!-- ========== MOBILE OVERLAY ========== -->
-<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-<!-- ========== CONFIRM DELETE POPUP ========== -->
-<div id="confirm-popup" class="confirm-popup hidden">
-    <div class="confirm-box">
-        <div class="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:var(--primary)">
-            <i class="fa-solid fa-triangle-exclamation text-2xl" style="color:var(--primary-text)"></i>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 mb-2">Confirm Deletion</h3>
-        <p class="text-sm text-slate-500 mb-6">This will permanently remove the product record. Are you sure?</p>
-        <div class="flex gap-3 justify-center">
-            <button onclick="cancelDelete()" class="btn-secondary px-6">Cancel</button>
-            <button onclick="executeDelete()" class="btn-primary px-6" style="background:#ef4444;color:#fff;border:none;box-shadow:none">Delete</button>
-        </div>
+<!-- ── AUTH OVERLAY ─────────────────────── -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-mark">P</div>
+      <div class="auth-logo-text">
+        <h1>Pixup8k CRM</h1>
+        <p>Secure Administrative Access</p>
+      </div>
     </div>
+    <form action="/password" method="POST">
+      <div class="auth-field">
+        <label class="auth-label">Username</label>
+        <input type="text" name="user_name" class="auth-input" placeholder="Enter username" required autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input type="password" name="password" class="auth-input" placeholder="Enter password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="auth-btn">
+        <i class="fa-solid fa-key"></i> Authenticate
+      </button>
+    </form>
+    <div id="error-msg" class="auth-error">Invalid credentials — please try again.</div>
+  </div>
 </div>
 
-<!-- ========== AUTH OVERLAY ========== -->
-<div id="auth-overlay" class="fixed inset-0 z-[1000] flex items-center justify-center p-6" style="background:linear-gradient(135deg,#f0f9ff 0%,#ffffff 50%,#e0f4fb 100%)">
-    <div class="w-full max-w-md border shadow-2xl rounded-3xl p-10" style="background:rgba(255,255,255,0.92);border-color:var(--border)">
-        <div class="text-center mb-10">
-            <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-xl mx-auto shadow-lg" style="background:var(--primary)">
-                <i class="fa-solid fa-lock" style="color:var(--primary-text);font-size:20px"></i>
-            </div>
-            <h1 class="mt-6" style="font-size:22px">Secure Access</h1>
-            <p class="text-sm text-slate-500 mt-2">Pixup8k Administrative Terminal</p>
-        </div>
-        <form action="/password" method="POST" class="space-y-5">
-            <div>
-                <label class="form-label">Username</label>
-                <input type="text" name="user_name" required placeholder="Enter username" class="input-field">
-            </div>
-            <div>
-                <label class="form-label">Password</label>
-                <input type="password" name="password" required placeholder="Enter password" class="input-field">
-            </div>
-            <button type="submit" class="btn-primary w-full py-3 text-sm tracking-wide">
-                <i class="fa-solid fa-key mr-2"></i> Authenticate
-            </button>
-        </form>
-        <div id="error-msg" class="hidden mt-6 text-center text-xs font-bold text-red-500 tracking-widest uppercase">
-            Invalid Credentials
-        </div>
+<!-- ── CONFIRM DELETE MODAL ──────────────── -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fa-solid fa-trash-can"></i></div>
+    <div class="modal-title">Delete Product?</div>
+    <div class="modal-body">This action is permanent and cannot be undone. The product record will be removed from the database.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cancelDelete()">Cancel</button>
+      <button class="btn btn-danger" onclick="executeDelete()"><i class="fa-solid fa-trash-can"></i> Delete</button>
     </div>
+  </div>
 </div>
 
-<!-- ========== STICKY TOP HEADER ========== -->
-<header class="sticky-top-header" id="sticky-header" style="margin-right:var(--sidebar-width)">
-    <div class="header-title">
-        <button onclick="toggleSidebar()" class="mobile-toggle" id="mobile-menu-btn">
-            <i class="fa-solid fa-bars-staggered"></i>
-            <span class="text-xs font-bold hidden sm:inline">Menu</span>
-        </button>
-        <span class="hidden md:inline font-bold" style="font-size:16px">
-            <i class="fa-solid fa-store mr-2 opacity-60"></i>
-            <span id="sticky-page-title">Dashboard</span>
-        </span>
+<!-- ── EDIT MODAL ────────────────────────── -->
+<div id="edit-modal-overlay">
+  <div class="edit-modal">
+    <div class="edit-modal-head">
+      <div>
+        <h3>Edit Product</h3>
+        <p id="modal-sku">SKU: —</p>
+      </div>
+      <button class="close-btn" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div id="connection-status" class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 border rounded-full shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Syncing Node...
+    <div class="edit-modal-body">
+      <form id="edit-form" action="/update_product" method="POST" class="form-grid">
+        <input type="hidden" name="product_id" id="edit-id">
+        <div class="form-group">
+          <label class="form-label">Product Name</label>
+          <input name="title" id="edit-title" class="form-input" placeholder="Product name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select name="category" id="edit-category" class="form-input">
+            <option value="" disabled>Select</option>
+            <option>Apparel</option><option>Footwear</option><option>Accessories</option>
+            <option>Electronics</option><option>Sportswear</option><option>Outerwear</option>
+            <option>Bags</option><option>Jewelry</option><option>Home</option>
+            <option>Beauty</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price ($)</label>
+          <input name="price" type="number" id="edit-price" class="form-input" placeholder="0.00" min="0.01" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rating (0–5)</label>
+          <input name="rating" type="number" id="edit-rating" class="form-input" placeholder="4.5" min="0" max="5" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Material</label>
+          <input name="material" id="edit-material" class="form-input" placeholder="e.g. Cotton">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <input name="color" id="edit-color" class="form-input" placeholder="e.g. Navy Blue">
+        </div>
+        <div class="form-group form-col-span">
+          <label class="form-label">Description</label>
+          <textarea name="description" id="edit-description" class="form-input" placeholder="Product details..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Image URL</label>
+          <input name="image_link" id="edit-image-link" class="form-input" placeholder="https://..." oninput="livePreview(this.value,'edit-prev-img','edit-prev-box')">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Page Link</label>
+          <input name="image" id="edit-image" class="form-input" placeholder="https://product-page.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Trending Score</label>
+          <input name="trending_score" id="edit-trending" class="form-input" type="number" min="0" max="100" step="1" placeholder="0–100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Image Preview</label>
+          <div class="img-preview-box" id="edit-prev-box">
+            <img id="edit-prev-img" alt="preview">
+            <div class="img-preview-placeholder">
+              <i class="fa-regular fa-image"></i>
+              <p>Preview</p>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
-    <button onclick="toggleSidebarDesktop()" class="hidden lg:flex items-center gap-2 btn-secondary text-xs">
-        <i class="fa-solid fa-table-columns mr-1"></i> Toggle Panel
-    </button>
-</header>
+    <div class="edit-modal-foot">
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditForm()"><i class="fa-solid fa-check"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
 
-<!-- ========== SIDEBAR — RIGHT ========== -->
-<div id="sidebar" class="sidebar">
-    <div style="position:relative">
-        <button class="sidebar-collapse-btn hidden lg:flex" onclick="toggleSidebarDesktop()" title="Collapse">
-            <i class="fa-solid fa-chevron-right" id="collapse-icon"></i>
-        </button>
-    </div>
+<!-- ═══════════════════ MAIN APP ═══════════════════ -->
+<div class="app" id="app-shell" style="display:none">
 
+  <!-- ── SIDEBAR ─────────────────── -->
+  <aside class="sidebar">
     <div class="sidebar-logo">
-        <div class="flex items-center gap-3">
-            <div class="logo-icon">P</div>
-            <span class="logo-name">Pixup8k</span>
-        </div>
-        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-full transition-all" style="color:var(--primary-text);background:rgba(255,255,255,0.4)">
-            <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+      <div class="logo-mark">P</div>
+      <div>
+        <div class="logo-text">Pixup8k</div>
+        <div class="logo-sub">Product CRM</div>
+      </div>
     </div>
 
-    <div class="nav-section-label">Navigation</div>
-
-    <nav class="flex-1 space-y-1">
-        <div onclick="switchTab('dashboard')" id="link-dashboard" class="nav-item active">
-            <i class="fa-solid fa-chart-line w-5 text-center"></i> Dashboard
-        </div>
-        <div onclick="switchTab('inventory')" id="link-inventory" class="nav-item">
-            <i class="fa-solid fa-box-archive w-5 text-center"></i> Inventory
-        </div>
-        <div onclick="switchTab('analytics')" id="link-analytics" class="nav-item">
-            <i class="fa-solid fa-microchip w-5 text-center"></i> Analytics
-        </div>
-        <div onclick="switchTab('add-product')" id="link-add-product" class="nav-item">
-            <i class="fa-solid fa-plus w-5 text-center"></i> New Entry
-        </div>
-    </nav>
-
-    <div class="nav-section-label mt-4">System</div>
-    <div class="mt-2 text-xs font-bold" style="color:rgba(26,106,138,0.7);padding:0 14px">
-        <i class="fa-solid fa-shield-halved mr-2"></i> Authenticated
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+        <i class="fa-solid fa-chart-line"></i> Dashboard
+      </div>
+      <div class="nav-item" id="nav-inventory" onclick="switchTab('inventory')">
+        <i class="fa-solid fa-box-archive"></i> Products
+      </div>
+      <div class="nav-item" id="nav-analytics" onclick="switchTab('analytics')">
+        <i class="fa-solid fa-chart-bar"></i> Analytics
+      </div>
     </div>
-</div>
 
-<!-- ========== MAIN CONTENT ========== -->
-<div class="main-content" id="main-content">
-    <div class="main-content-inner">
+    <div class="nav-section">
+      <div class="nav-label">Actions</div>
+      <div class="nav-item" id="nav-add-product" onclick="switchTab('add-product')">
+        <i class="fa-solid fa-plus"></i> New Product
+      </div>
+      <a href="/" class="nav-item">
+        <i class="fa-solid fa-comment-dots"></i> Chat Interface
+      </a>
+    </div>
 
-        <!-- Page Title -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-                <h2 id="page-title" style="font-size:20px;font-weight:800" class="capitalize">Dashboard</h2>
-                <p class="text-sm text-slate-500">System Overview &amp; Data Sync</p>
+    <div class="nav-section">
+      <div class="nav-label">Explore</div>
+      <div class="nav-item" style="opacity:.4;cursor:default;pointer-events:none;">
+        <i class="fa-solid fa-chart-pie"></i> Reports
+      </div>
+      <div class="nav-item" style="opacity:.4;cursor:default;pointer-events:none;">
+        <i class="fa-solid fa-bolt"></i> Automations
+      </div>
+      <div class="nav-item" style="opacity:.4;cursor:default;pointer-events:none;">
+        <i class="fa-solid fa-gear"></i> Settings
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-badge">
+        <div class="user-ava">A</div>
+        <div>
+          <div class="user-name">Admin</div>
+          <div class="user-role">Authenticated</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ────────────────────── -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="page-title" id="page-title">Dashboard</div>
+          <div class="breadcrumb">Pixup8k / <span id="breadcrumb-current">Overview</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="conn-pill" id="conn-pill">
+          <div class="conn-dot" id="conn-dot"></div>
+          <span id="conn-label">Syncing…</span>
+        </div>
+        <a href="/" class="icon-btn" title="Chat Interface"><i class="fa-solid fa-comment-dots"></i></a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="content-area">
+
+      <!-- ══ DASHBOARD TAB ══ -->
+      <div class="tab-pane active" id="tab-dashboard">
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-head">
+              <div class="stat-label">Total Products</div>
+              <div class="stat-icon green"><i class="fa-solid fa-box-archive"></i></div>
             </div>
+            <div class="stat-val" id="stat-count">—</div>
+            <div class="stat-footer">
+              <span class="stat-badge up">Active</span>
+              <span class="stat-sub">In catalog</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-head">
+              <div class="stat-label">Avg. Price</div>
+              <div class="stat-icon amber"><i class="fa-solid fa-dollar-sign"></i></div>
+            </div>
+            <div class="stat-val" id="stat-avg">—</div>
+            <div class="stat-footer">
+              <span class="stat-badge flat">Market value</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-head">
+              <div class="stat-label">Total Interactions</div>
+              <div class="stat-icon blue"><i class="fa-solid fa-hand-pointer"></i></div>
+            </div>
+            <div class="stat-val" id="stat-clicks">—</div>
+            <div class="stat-footer">
+              <span class="stat-badge up" id="stat-clicks-sub">Tracked</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-head">
+              <div class="stat-label">Global Queries</div>
+              <div class="stat-icon purple"><i class="fa-solid fa-magnifying-glass"></i></div>
+            </div>
+            <div class="stat-val" id="stat-searches">—</div>
+            <div class="stat-footer">
+              <span class="stat-badge flat">All time</span>
+            </div>
+          </div>
         </div>
 
-        <!-- ====== DASHBOARD TAB ====== -->
-        <div id="tab-dashboard" class="tab-pane active space-y-8">
-
-         
-
-            <!-- STAT CARDS — 3 columns on large screens -->
-            <div class="stat-grid">
-                <div class="glass-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Number of Products</p>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs" style="background:var(--primary);color:var(--primary-text)">
-                            <i class="fa-solid fa-layer-group"></i>
-                        </div>
-                    </div>
-                    <div id="stat-count" class="stat-value">--</div>
-                    <div class="mt-3"><span class="growth-tag" style="background:#e8f6fb;color:var(--primary-text)">growth</span></div>
-                </div>
-
-                <div class="glass-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Active Interactions</p>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs bg-purple-50 text-purple-600">
-                            <i class="fa-solid fa-hand-pointer"></i>
-                        </div>
-                    </div>
-                    <div id="stat-total-clicks" class="stat-value">--</div>
-                    <div class="mt-3">
-                        <span id="click-growth-percent" class="growth-tag" style="background:#e8f6fb;color:var(--primary-text)">Calculating...</span>
-                    </div>
-                </div>
-
-                <div class="glass-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Avg Product Price</p>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs bg-emerald-50 text-emerald-600">
-                            <i class="fa-solid fa-dollar-sign"></i>
-                        </div>
-                    </div>
-                    <div id="stat-avg-price" class="stat-value">--</div>
-                    <div class="mt-3"><span class="growth-tag bg-slate-50 text-slate-400">Market Value</span></div>
-                </div>
-
-                <div class="glass-card hide-mobile">
-                    <div class="flex justify-between items-start mb-4">
-                        <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Global Queries</p>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs bg-orange-50 text-orange-600">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </div>
-                    </div>
-                    <div id="stat-total-searches" class="stat-value">--</div>
-                    <div class="mt-3"><span class="growth-tag" style="background:#e8f6fb;color:var(--primary-text)">Stable Node</span></div>
-                </div>
-
-                <!-- TOP SELLING PRODUCT CARD -->
-                <div class="glass-card top-selling-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Top Selling Product</p>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs" style="background:var(--primary);color:var(--primary-text)">
-                            <i class="fa-solid fa-fire-flame-curved"></i>
-                        </div>
-                    </div>
-                    <div id="stat-top-product" class="font-bold text-sm text-slate-900 truncate">--</div>
-                    <div id="stat-top-product-detail" class="mt-1">
-                        <span class="text-[10px] text-slate-400 font-bold">Loading...</span>
-                    </div>
-                    <div class="mt-3">
-                        <span class="growth-tag" style="background:var(--primary);color:var(--primary-text)">
-                            <i class="fa-solid fa-star mr-1"></i> Best Performer
-                        </span>
-                    </div>
-                </div>
-
-                <div class="glass-card hide-mobile">
-                    <div class="flex justify-between items-start mb-4">
-                        <p class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Supported Languages</p>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs bg-indigo-50 text-indigo-600">
-                            <i class="fa-solid fa-globe"></i>
-                        </div>
-                    </div>
-                    <div id="stat-languages" class="stat-value">--</div>
-                    <div class="mt-3"><span class="growth-tag bg-indigo-50 text-indigo-600">Multilingual</span></div>
-                </div>
+        <!-- Charts + Recent -->
+        <div class="dash-grid">
+          <div class="chart-card">
+            <div class="chart-title">Search Engagement</div>
+            <div class="chart-sub">Top 6 searched product terms</div>
+            <div style="height:280px; position:relative;">
+              <canvas id="dashChart"></canvas>
             </div>
-
-            <!-- Charts + Recent -->
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <div class="lg:col-span-3 glass-card">
-                    <div class="flex justify-between items-center mb-8">
-                        <h4 style="font-size:16px">Global Search Engagement</h4>
-                        <span class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Last 5 Searches</span>
-                    </div>
-                    <div class="h-[280px] md:h-[320px] relative">
-                        <canvas id="searchCircleChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2 glass-card">
-                    <div class="flex justify-between items-center mb-6">
-                        <h4 style="font-size:16px">Latest Registry</h4>
-                        <button onclick="switchTab('inventory')" class="text-xs font-bold hover:underline" style="color:var(--primary-text)">View All</button>
-                    </div>
-                    <div id="recent-grid" class="space-y-3"></div>
-                </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:14px;">Latest Products</div>
+            <div class="recent-list" id="recent-list">
+              <div style="color:var(--ink-4);font-size:13px;text-align:center;padding:20px">Loading…</div>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- ====== INVENTORY TAB ====== -->
-        <div id="tab-inventory" class="tab-pane">
-            <div class="mb-8 glass-card !p-0 overflow-hidden">
-                <div class="relative w-full">
-                    <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="inventory-search-input"
-                        placeholder="Query Master Registry by ID, Title or Category..."
-                        class="input-field pl-12 py-5 border-none bg-white"
-                        style="border-radius:14px">
-                </div>
+      <!-- ══ INVENTORY TAB ══ -->
+      <div class="tab-pane" id="tab-inventory">
+        <div class="section-hd" style="margin-bottom:18px;">
+          <div>
+            <div class="section-title">Product Catalog</div>
+            <div class="section-sub" id="inv-count-label">Loading…</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="search-wrap">
+              <i class="fa-solid fa-search"></i>
+              <input class="search-input" id="inv-search" placeholder="Search by title, ID, category…" oninput="filterInventory(this.value)">
             </div>
-            <div id="full-inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        </div>
-
-        <!-- ====== ANALYTICS TAB ====== -->
-        <div id="tab-analytics" class="tab-pane space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 glass-card overflow-hidden">
-                    <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
-                        <h4 style="font-size:16px">Resource Engagement Analytics</h4>
-                        <!-- Analytics Search Filter -->
-                        <div class="relative">
-                            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input id="analytics-search-filter" type="text"
-                                placeholder="Filter products..."
-                                class="input-field pl-9 py-2 text-xs"
-                                style="border-radius:999px;max-width:180px"
-                                oninput="filterAnalyticsChart(this.value)">
-                        </div>
-                    </div>
-                    <div class="h-[300px] md:h-[400px]">
-                        <canvas id="clicksChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="space-y-8">
-                    <div class="glass-card flex flex-col" style="height:400px">
-                        <h4 class="flex-shrink-0 mb-6" style="font-size:16px">User Inquiry Stream</h4>
-                        <div id="questions-list" class="space-y-3 overflow-y-auto custom-scroll pr-2 flex-grow"></div>
-                    </div>
-                    <div class="glass-card hide-mobile">
-                        <h4 class="mb-4" style="font-size:16px">Supported Languages Usage</h4>
-                        <div class="h-[180px]">
-                            <canvas id="languagesChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card overflow-hidden !p-0">
-                <div class="p-6" style="border-bottom:1px solid var(--border)">
-                    <h4 style="font-size:16px">Product Synchronization</h4>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead>
-                            <tr class="text-[10px] uppercase font-bold" style="color:var(--primary-text)">
-                                <th class="p-5 text-left" style="background:var(--card-gradient-start)">Products</th>
-                                <th class="p-5 text-right" style="background:var(--card-gradient-start)">Node Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analytics-tbody" class="text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ====== ADD PRODUCT TAB ====== -->
-        <div id="tab-add-product" class="tab-pane max-w-5xl mx-auto">
-            <div class="glass-card p-6 md:p-10">
-                <div class="mb-8 pb-6" style="border-bottom:1px solid var(--border)">
-                    <h3 style="font-size:18px">Product Registration</h3>
-                    <p class="text-sm text-slate-500 mt-2">Create a new product record for global distribution.</p>
-                </div>
-
-                <form id="add-product-form" action="/Add_product" method="POST"
-                    class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10"
-                    onsubmit="handleAddProduct(event)">
-                    <input type="hidden" name="trending_score" value="0">
-
-                    <!-- Left Column -->
-                    <div class="space-y-5">
-                        <div>
-                            <label class="form-label">Product Name</label>
-                            <input name="title" placeholder="e.g. Premium Tech Fleece" required class="input-field">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Product ID</label>
-                                <input name="id" placeholder="L-X01" required class="input-field">
-                            </div>
-                            <div>
-                                <label class="form-label">Category</label>
-                                <!-- Category Dropdown -->
-                                <select name="category" required class="input-field">
-                                    <option value="" disabled selected>Select category</option>
-                                    <option>Apparel</option>
-                                    <option>Footwear</option>
-                                    <option>Accessories</option>
-                                    <option>Electronics</option>
-                                    <option>Sportswear</option>
-                                    <option>Outerwear</option>
-                                    <option>Bags</option>
-                                    <option>Jewelry</option>
-                                    <option>Home</option>
-                                    <option>Beauty</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Price ($)</label>
-                                <!-- Positive numbers only -->
-                                <input type="number" name="price" required class="input-field" id="add-price"
-                                    min="0.01" step="0.01" placeholder="0.00"
-                                    oninput="validatePrice(this)">
-                                <span class="field-error" id="price-error">Price must be a positive number.</span>
-                            </div>
-                            <div>
-                                <label class="form-label">Material</label>
-                                <input name="material" placeholder="e.g. Cotton" class="input-field">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Color</label>
-                                <input name="color" placeholder="e.g. Navy Blue" class="input-field">
-                            </div>
-                            <div>
-                                <label class="form-label">Rating (0–5)</label>
-                                <!-- 0 to 5, step 0.1 -->
-                                <input type="number" name="rating" placeholder="4.5" class="input-field"
-                                    min="0" max="5" step="0.1" id="add-rating"
-                                    oninput="validateRating(this)">
-                                <span class="field-error" id="rating-error">Rating must be 0–5.</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="form-label">Product Details</label>
-                            <textarea name="description" class="input-field h-28 resize-none" style="border-radius:14px"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div class="space-y-5">
-                        <div>
-                            <label class="form-label">Image URL</label>
-                            <input name="image_link" id="add-image-link" required class="input-field"
-                                placeholder="https://example.com/image.jpg"
-                                oninput="previewImg(this.value, 'add-prev')">
-                        </div>
-
-                        <!-- File Upload Button -->
-                        <div>
-                            <label class="form-label">Or Upload Image File</label>
-                            <div class="img-upload-area p-4 flex items-center gap-4"
-                                onclick="document.getElementById('add-file-input').click()">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:var(--primary)">
-                                    <i class="fa-solid fa-upload" style="color:var(--primary-text)"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold" style="color:var(--primary-text)">Click to select image</p>
-                                    <p class="text-[10px] text-slate-400 mt-0.5" id="file-name-display">No file chosen</p>
-                                </div>
-                                <input type="file" id="add-file-input" accept="image/*" class="hidden"
-                                    onchange="handleFileUpload(event)">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="form-label">Page Link</label>
-                            <input name="image" required class="input-field" placeholder="https://product-page.com">
-                        </div>
-
-                        <!-- Live Image Preview -->
-                        <div class="h-48 img-upload-area flex items-center justify-center overflow-hidden">
-                            <img id="add-prev" class="max-h-full hidden z-10 object-contain">
-                            <div id="add-prev-txt" class="text-center pointer-events-none">
-                                <i class="fa-solid fa-image text-3xl mb-2" style="color:var(--primary-dark)"></i>
-                                <p class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--primary-text)">Live Preview</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="md:col-span-2 pt-6" style="border-top:1px solid var(--border)">
-                        <button type="submit" class="btn-primary w-full py-4 text-sm tracking-widest uppercase shadow-lg">
-                            <i class="fa-solid fa-check-circle mr-2"></i>
-                            Confirm and Execute Registration
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-    </div><!-- /main-content-inner -->
-
-    <!-- ====== FOOTER ====== -->
-    <footer class="site-footer">
-        <p>© 2025 <strong>LuxeStore / Pixup8k</strong>. All rights reserved.</p>
-        <div class="footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Support</a>
-            <a href="/">Chat Interface</a>
-        </div>
-    </footer>
-
-</div><!-- /main-content -->
-
-<!-- ========== EDIT MODAL ========== -->
-<div id="edit-modal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center p-4 md:p-6"
-    style="background:rgba(173,216,230,0.2);backdrop-filter:blur(6px)">
-    <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col" style="max-height:95vh">
-        <div class="modal-header p-6 md:p-8 flex justify-between items-center">
-            <div>
-                <h3 style="color:var(--primary-text);font-size:18px">Edit Product</h3>
-                <p id="modal-sku-display" class="text-[11px] font-bold tracking-widest uppercase mt-1" style="color:var(--primary-text);opacity:0.7">--</p>
-            </div>
-            <button onclick="closeEditModal()" class="w-10 h-10 rounded-full flex items-center justify-center transition-all"
-                style="color:var(--primary-text);background:rgba(255,255,255,0.5)">
-                <i class="fa-solid fa-xmark"></i>
+            <button class="btn btn-primary btn-sm" onclick="switchTab('add-product')">
+              <i class="fa-solid fa-plus"></i> Add Product
             </button>
+          </div>
         </div>
+        <div class="products-grid" id="products-grid"></div>
+      </div>
 
-        <div class="p-6 md:p-10 overflow-y-auto flex-1">
-            <form id="edit-form" action="/update_product" method="POST"
-                class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
-                <input type="hidden" name="product_id" id="edit-id">
-
-                <div class="space-y-5">
-                    <label class="form-label">Product Information</label>
-                    <input name="title" id="edit-title" class="input-field" placeholder="Title">
-                    <div class="grid grid-cols-2 gap-4">
-                        <select name="category" id="edit-category" class="input-field">
-                            <option value="" disabled>Select category</option>
-                            <option>Apparel</option>
-                            <option>Footwear</option>
-                            <option>Accessories</option>
-                            <option>Electronics</option>
-                            <option>Sportswear</option>
-                            <option>Outerwear</option>
-                            <option>Bags</option>
-                            <option>Jewelry</option>
-                            <option>Home</option>
-                            <option>Beauty</option>
-                            <option>Other</option>
-                        </select>
-                        <input name="price" type="number" id="edit-price" class="input-field"
-                            placeholder="Price" min="0.01" step="0.01" oninput="validatePrice(this)">
-                    </div>
-                    <textarea name="description" id="edit-description" class="input-field h-40 resize-none" style="border-radius:14px" placeholder="Product Description"></textarea>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input name="material" id="edit-material" class="input-field" placeholder="Material">
-                        <input name="color" id="edit-color" class="input-field" placeholder="Color">
-                    </div>
+      <!-- ══ ANALYTICS TAB ══ -->
+      <div class="tab-pane" id="tab-analytics">
+        <div class="analytics-grid">
+          <!-- Left: bar chart + table -->
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div class="chart-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap;">
+                <div>
+                  <div class="chart-title">Product Click Engagement</div>
+                  <div class="chart-sub">Top 10 most clicked products</div>
                 </div>
-
-                <div class="space-y-5">
-                    <label class="form-label">Media &amp; Logic</label>
-                    <input name="image_link" id="edit-image-link" class="input-field"
-                        placeholder="Image Link" oninput="previewImg(this.value, 'edit-prev')">
-                    <input name="image" id="edit-image" class="input-field" placeholder="Page link">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input name="rating" id="edit-rating" class="input-field"
-                            placeholder="Rating (0–5)" type="number" min="0" max="5" step="0.1"
-                            oninput="validateRating(this)">
-                        <input name="trending_score" id="edit-trending" class="input-field" placeholder="Trending score">
-                    </div>
-                    <div class="h-52 rounded-2xl flex items-center justify-center overflow-hidden img-upload-area">
-                        <img id="edit-prev" class="max-h-full hidden object-contain">
-                        <p id="edit-prev-txt" class="text-xs font-bold uppercase tracking-widest" style="color:var(--primary-text);opacity:0.6">Image Preview</p>
-                    </div>
-                    <button type="submit" class="btn-primary w-full py-4 uppercase tracking-widest text-xs mt-4">
-                        Commit System Changes
-                    </button>
+                <div class="search-wrap">
+                  <i class="fa-solid fa-search"></i>
+                  <input class="search-input" style="width:180px;" id="analytics-filter" placeholder="Filter…" oninput="filterAnalytics(this.value)">
                 </div>
-            </form>
+              </div>
+              <div style="height:300px;position:relative;">
+                <canvas id="analyticsChart"></canvas>
+              </div>
+            </div>
+            <div class="table-card">
+              <div class="table-head">
+                <div class="section-title">Product Synchronization</div>
+              </div>
+              <div class="table-wrap">
+                <table class="crm-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>ID</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Node Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: questions + lang chart -->
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div class="chart-card" style="flex:1;">
+              <div class="chart-title" style="margin-bottom:14px;">User Inquiry Stream</div>
+              <div class="q-stream" id="q-stream">
+                <div style="color:var(--ink-4);font-size:13px;text-align:center;padding:20px">Loading…</div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">Language Distribution</div>
+              <div class="chart-sub">Chat session languages</div>
+              <div style="height:200px;position:relative;">
+                <canvas id="langChart"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
 
-<!-- ========== FLOATING CHAT ========== -->
-<a href="/" class="floating-chat" aria-label="Open Chat" title="Open Chat">
-    <i class="fa-solid fa-comment-dots"></i>
-</a>
+      <!-- ══ ADD PRODUCT TAB ══ -->
+      <div class="tab-pane" id="tab-add-product">
+        <div class="form-card">
+          <div class="form-card-head">
+            <div class="section-title">Register New Product</div>
+            <div class="section-sub">Create a new product entry for global distribution via the AI assistant.</div>
+          </div>
+          <form id="add-form" action="/Add_product" method="POST" onsubmit="handleAddSubmit(event)">
+            <input type="hidden" name="trending_score" value="0">
+            <div class="form-card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Product Name *</label>
+                  <input name="title" class="form-input" placeholder="e.g. Premium Tech Fleece" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Product ID *</label>
+                  <input name="id" class="form-input" placeholder="e.g. L-X01" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Category *</label>
+                  <select name="category" class="form-input" required>
+                    <option value="" disabled selected>Select category</option>
+                    <option>Apparel</option><option>Footwear</option><option>Accessories</option>
+                    <option>Electronics</option><option>Sportswear</option><option>Outerwear</option>
+                    <option>Bags</option><option>Jewelry</option><option>Home</option>
+                    <option>Beauty</option><option>Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Price ($) *</label>
+                  <input type="number" name="price" class="form-input" placeholder="0.00" min="0.01" step="0.01" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Material</label>
+                  <input name="material" class="form-input" placeholder="e.g. 100% Cotton">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Color</label>
+                  <input name="color" class="form-input" placeholder="e.g. Navy Blue">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Rating (0–5)</label>
+                  <input type="number" name="rating" class="form-input" placeholder="4.5" min="0" max="5" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Page Link *</label>
+                  <input name="image" class="form-input" placeholder="https://product-page.com" required>
+                </div>
+                <div class="form-group form-col-span">
+                  <label class="form-label">Description</label>
+                  <textarea name="description" class="form-input" placeholder="Product description, materials, sizing…"></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Image URL *</label>
+                  <input name="image_link" id="add-img-url" class="form-input" placeholder="https://…/image.jpg" required
+                    oninput="livePreview(this.value,'add-prev-img','add-prev-box')">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Image Preview</label>
+                  <div class="img-preview-box" id="add-prev-box">
+                    <img id="add-prev-img" alt="preview">
+                    <div class="img-preview-placeholder">
+                      <i class="fa-regular fa-image"></i>
+                      <p>Live Preview</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-footer">
+              <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-form').reset(); livePreview('','add-prev-img','add-prev-box')">
+                Reset
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check-circle"></i> Register Product
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
 
-<!-- ========== FLOATING MOBILE NAV ========== -->
-<div class="floating-nav-btn" onclick="toggleSidebar()" title="Quick Navigation">
-    <i class="fa-solid fa-compass" style="color:var(--primary-text)"></i>
-</div>
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
 
 <script>
-/**
- * LuxeStore | Pixup8k — Enhanced Dashboard Script
- * Light Blue & White Theme — All features implemented
- * Lines: 890+
- */
-
-/* ===================== GLOBALS ===================== */
-let globalData = { products: [] };
-let globalAnalytics = {
-    total_searches: 0, total_clicks: 0,
-    most_questions: {}, product_search: {},
-    product_clicks: {}, price_updates: {},
-    supported_languages: {}
-};
-let chartClicks = null;
-let chartCircle = null;
-let chartLanguages = null;
-let sidebarCollapsed = false;
-let allClickLabels = [];
-let allClickValues = [];
+/* ═══════════════════ GLOBALS ═══════════════════ */
+const AUTH_STATUS = "{{ status }}";
+let G = { products: [], analytics: {} };
+let allClickLabels = [], allClickValues = [];
+let chartDash = null, chartAnalytics = null, chartLang = null;
 let pendingDeleteId = null;
 
-const authStatus = "{{ status }}";
-
-/* ===================== SIDEBAR TOGGLE ===================== */
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('active');
-}
-
-/* ===================== SIDEBAR COLLAPSE (DESKTOP) ===================== */
-function toggleSidebarDesktop() {
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    const stickyHeader = document.getElementById('sticky-header');
-    const footer = document.querySelector('.site-footer');
-    const icon = document.getElementById('collapse-icon');
-
-    sidebarCollapsed = !sidebarCollapsed;
-
-    if (sidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-        mainContent.style.marginRight = '0';
-        if (stickyHeader) stickyHeader.style.marginRight = '0';
-        if (footer) footer.style.marginRight = '0';
-        if (icon) { icon.classList.replace('fa-chevron-right', 'fa-chevron-left'); }
-    } else {
-        sidebar.classList.remove('collapsed');
-        mainContent.style.marginRight = 'var(--sidebar-width)';
-        if (stickyHeader) stickyHeader.style.marginRight = 'var(--sidebar-width)';
-        if (footer) footer.style.marginRight = 'var(--sidebar-width)';
-        if (icon) { icon.classList.replace('fa-chevron-left', 'fa-chevron-right'); }
-    }
-}
-
-/* ===================== DOM READY ===================== */
-document.addEventListener("DOMContentLoaded", () => {
-    if (authStatus === "success") {
-        document.getElementById("auth-overlay").classList.add("hidden");
-        sync();
-    } else if (authStatus === "failed") {
-        const err = document.getElementById("error-msg");
-        if (err) err.classList.remove("hidden");
-    }
-
-    const searchInput = document.getElementById('inventory-search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => filterInventory(e.target.value));
-    }
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
+/* ═══════════════════ BOOT ═══════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  if (AUTH_STATUS === 'success') {
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'flex';
+    sync();
+  } else if (AUTH_STATUS === 'failed') {
+    document.getElementById('error-msg').style.display = 'block';
+  }
 });
 
-/* ===================== RESIZE HANDLER ===================== */
-function handleResize() {
-    const header = document.getElementById('sticky-header');
-    const footer = document.querySelector('.site-footer');
-    const mainContent = document.getElementById('main-content');
-
-    if (window.innerWidth <= 1024) {
-        if (header) header.style.marginRight = '0';
-        if (footer) footer.style.marginRight = '0';
-        if (mainContent) mainContent.style.marginRight = '0';
-    } else {
-        const offset = sidebarCollapsed ? '0' : 'var(--sidebar-width)';
-        if (header) header.style.marginRight = offset;
-        if (footer) footer.style.marginRight = offset;
-        if (mainContent) mainContent.style.marginRight = offset;
-    }
-}
-
-/* ===================== SYNC DATA ===================== */
+/* ═══════════════════ SYNC ═══════════════════ */
 async function sync() {
-    try {
-        const [d, a] = await Promise.all([
-            fetch("/api/data"),
-            fetch("/api/analytics")
-        ]);
-        globalData = await d.json();
-        globalAnalytics = await a.json();
-
-        document.getElementById("connection-status").innerHTML =
-            `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online`;
-
-        refreshDashboard();
-        refreshInventory(globalData.products || []);
-    } catch(e) {
-        document.getElementById("connection-status").innerHTML =
-            `<span class="w-2 h-2 rounded-full bg-red-500"></span> Offline Node`;
-    }
+  const dot = document.getElementById('conn-dot');
+  const lbl = document.getElementById('conn-label');
+  try {
+    const [dr, ar] = await Promise.all([fetch('/api/data'), fetch('/api/analytics')]);
+    const data = await dr.json();
+    const analytics = await ar.json();
+    G.products = data.products || [];
+    G.analytics = analytics;
+    dot.className = 'conn-dot online';
+    lbl.textContent = 'Online';
+    refreshDashboard();
+    renderInventory(G.products);
+  } catch (e) {
+    dot.className = 'conn-dot offline';
+    lbl.textContent = 'Offline';
+  }
 }
 
-/* ===================== SWITCH TAB ===================== */
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+/* ═══════════════════ TABS ═══════════════════ */
+function switchTab(id) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + id)?.classList.add('active');
+  document.getElementById('nav-' + id)?.classList.add('active');
 
-    const tabEl = document.getElementById('tab-' + tabId);
-    const linkEl = document.getElementById('link-' + tabId);
+  const labels = { dashboard: 'Dashboard', inventory: 'Products', analytics: 'Analytics', 'add-product': 'New Product' };
+  const sublabels = { dashboard: 'Overview', inventory: 'Catalog', analytics: 'Insights', 'add-product': 'Registration' };
+  document.getElementById('page-title').textContent = labels[id] || id;
+  document.getElementById('breadcrumb-current').textContent = sublabels[id] || id;
 
-    if (tabEl) tabEl.classList.add('active');
-    if (linkEl) linkEl.classList.add('active');
-
-    const title = tabId.replace('-', ' ');
-    const pageTitleEl = document.getElementById('page-title');
-    const stickyEl = document.getElementById('sticky-page-title');
-    if (pageTitleEl) pageTitleEl.innerText = title;
-    if (stickyEl) stickyEl.innerText = title;
-
-    // Close sidebar on mobile after tab switch
-    if (window.innerWidth < 1024) {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        if (sidebar.classList.contains('open')) {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('active');
-        }
-    }
-
-    if (tabId === 'analytics') renderCharts();
-    if (tabId === 'dashboard') renderDashboardCharts();
+  if (id === 'analytics') setTimeout(renderAnalytics, 50);
+  if (id === 'dashboard') setTimeout(renderDashChart, 50);
 }
 
-/* ===================== REFRESH DASHBOARD ===================== */
+/* ═══════════════════ DASHBOARD ═══════════════════ */
 function refreshDashboard() {
-    const products = globalData.products || [];
+  const prods = G.products;
+  const a = G.analytics;
 
-    const statCount = document.getElementById("stat-count");
-    const statClicks = document.getElementById("stat-total-clicks");
-    const statSearches = document.getElementById("stat-total-searches");
-    const statLanguages = document.getElementById("stat-languages");
+  document.getElementById('stat-count').textContent = prods.length;
+  document.getElementById('stat-clicks').textContent = a.total_clicks || 0;
+  document.getElementById('stat-searches').textContent = a.total_searches || 0;
 
-    if (statCount) statCount.innerText = products.length;
-    if (statClicks) statClicks.innerText = globalAnalytics.total_clicks || 0;
-    if (statSearches) statSearches.innerText = globalAnalytics.total_searches || 0;
+  if (prods.length) {
+    const avg = prods.reduce((s, p) => s + (parseFloat(p.price) || 0), 0) / prods.length;
+    document.getElementById('stat-avg').textContent = '$' + avg.toFixed(0);
+  }
 
-    if (statLanguages) {
-        const langCount = Object.keys(globalAnalytics.supported_languages || {}).length;
-        statLanguages.innerText = langCount || '--';
-    }
-
-    // Auto-update average price
-    updateAveragePrice(products);
-
-    // Click growth percentage
-    const growth = globalAnalytics.total_clicks > 0
-        ? (globalAnalytics.total_clicks / 500 * 100).toFixed(1)
-        : 0;
-    const growthEl = document.getElementById("click-growth-percent");
-    if (growthEl) growthEl.innerText = `+${growth}% efficiency`;
-
-    // Low-click notification
-    const clickAlert = document.getElementById('click-alert');
-    if (clickAlert) {
-        if ((globalAnalytics.total_clicks || 0) < 100) {
-            clickAlert.classList.remove('hidden');
-        } else {
-            clickAlert.classList.add('hidden');
-        }
-    }
-
-    // Top selling product
-    updateTopSellingProduct(products);
-
-    // Recent products list
-    const recent = [...products].slice(-4).reverse();
-    const recentGrid = document.getElementById("recent-grid");
-    if (recentGrid) {
-        recentGrid.innerHTML = recent.map(p => {
-            const isTrending = (parseFloat(p.trending_score) || 0) > 80;
-            return `
-            <div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-blue-50 transition-all cursor-default" style="border:1px solid var(--border)">
-                <div class="w-12 h-12 overflow-hidden rounded-xl border bg-white flex items-center justify-center flex-shrink-0" style="border-color:var(--border)">
-                    <img src="${p.image_link}" class="max-h-full object-contain" onerror="this.src='https://placehold.co/60x60?text=?'">
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <p class="text-xs font-bold truncate text-slate-800 uppercase tracking-tight">${p.title}</p>
-                        ${isTrending ? '<span class="trending-badge"><i class="fa-solid fa-fire-flame-curved mr-1"></i>Hot</span>' : ''}
-                    </div>
-                    <p class="text-[10px] text-slate-400 font-bold mt-0.5">$${p.price} • ${p.category}</p>
-                </div>
-                <span class="text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0" style="background:var(--primary);color:var(--primary-text)">new</span>
-            </div>`;
-        }).join("");
-    }
-
-    renderDashboardCharts();
+  /* Recent list */
+  const recent = [...prods].slice(-5).reverse();
+  const rl = document.getElementById('recent-list');
+  if (rl) {
+    rl.innerHTML = recent.length ? recent.map(p => `
+      <div class="recent-item">
+        <div class="ri-img"><img src="${p.image_link||''}" onerror="this.src='https://placehold.co/60?text=?'" alt="${p.title}"></div>
+        <div class="ri-info">
+          <div class="ri-name">${esc(p.title)}</div>
+          <div class="ri-cat">${p.category || '—'} · ${p.material || '—'}</div>
+        </div>
+        <div class="ri-price">$${p.price}</div>
+      </div>`).join('') : '<div style="color:var(--ink-4);font-size:13px;text-align:center;padding:16px">No products yet</div>';
+  }
+  renderDashChart();
 }
 
-/* ===================== UPDATE AVERAGE PRICE ===================== */
-function updateAveragePrice(products) {
-    const el = document.getElementById("stat-avg-price");
-    if (!el) return;
-    if (products && products.length > 0) {
-        const total = products.reduce((acc, p) => acc + (parseFloat(p.price) || 0), 0);
-        const avg = (total / products.length).toFixed(2);
-        el.innerText = `$${avg}`;
-    } else {
-        el.innerText = "$0.00";
+function renderDashChart() {
+  const searchData = G.analytics.product_search || {};
+  const sorted = Object.entries(searchData).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if (!sorted.length) return;
+
+  if (chartDash) chartDash.destroy();
+  const ctx = document.getElementById('dashChart');
+  if (!ctx) return;
+
+  chartDash = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(e => e[0].length > 18 ? e[0].slice(0,16)+'…' : e[0]),
+      datasets: [{
+        data: sorted.map(e => e[1]),
+        backgroundColor: '#4f7a3a',
+        hoverBackgroundColor: '#6aab50',
+        borderRadius: 6, barThickness: 28,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero:true, grid:{ color:'#f0f1ec' }, ticks:{ color:'#7a7f72', font:{size:11,family:'Geist'} } },
+        x: { grid:{ display:false }, ticks:{ color:'#7a7f72', font:{size:10,family:'Geist'} } }
+      },
+      plugins: {
+        legend:{ display:false },
+        tooltip:{ backgroundColor:'#1a1f16', titleColor:'#fff', bodyColor:'#8aab7a', padding:12, cornerRadius:8, displayColors:false, callbacks:{ label:(i)=>`Searches: ${i.raw}` } }
+      }
     }
+  });
 }
 
-/* ===================== TOP SELLING PRODUCT ===================== */
-function updateTopSellingProduct(products) {
-    const clickData = globalAnalytics.product_clicks || {};
-    const topEl = document.getElementById('stat-top-product');
-    const topDetail = document.getElementById('stat-top-product-detail');
-    if (!topEl) return;
+/* ═══════════════════ INVENTORY ═══════════════════ */
+function renderInventory(list) {
+  const grid = document.getElementById('products-grid');
+  const label = document.getElementById('inv-count-label');
+  if (label) label.textContent = `${list.length} product${list.length!==1?'s':''} found`;
+  if (!grid) return;
 
-    if (!Object.keys(clickData).length || !products.length) {
-        topEl.innerText = 'N/A';
-        if (topDetail) topDetail.innerHTML = '<span class="text-[10px] text-slate-400 font-bold">No data yet</span>';
-        return;
-    }
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i><h3>No products found</h3><p>Try adjusting your search, or add a new product.</p></div>`;
+    return;
+  }
 
-    const [topId, topClicks] = Object.entries(clickData).sort((a, b) => b[1] - a[1])[0];
-    const topProduct = products.find(x => x._id === topId);
-
-    if (topProduct) {
-        topEl.innerText = topProduct.title;
-        if (topDetail) {
-            topDetail.innerHTML = `<span class="text-[10px] font-bold text-slate-500">${topClicks} clicks • $${topProduct.price} • ${topProduct.category}</span>`;
-        }
-    } else {
-        topEl.innerText = topId.substring(0, 18) + '...';
-        if (topDetail) topDetail.innerHTML = `<span class="text-[10px] font-bold text-slate-500">${topClicks} clicks</span>`;
-    }
+  grid.innerHTML = list.map(p => {
+    const trending = (parseFloat(p.trending_score)||0) > 80;
+    const isNew = false; // could check date if needed
+    const stars = Array.from({length:5}, (_,i) => `<i class="fa-${i < Math.round(p.rating||0) ? 'solid':'regular'} fa-star"></i>`).join('');
+    return `
+    <div class="product-card">
+      <div class="pc-img-wrap">
+        ${trending ? '<span class="pc-badge trending"><i class="fa-solid fa-fire"></i> Hot</span>' : ''}
+        <span class="pc-cat">${esc(p.category||'General')}</span>
+        <img
+          src="${esc(p.image_link||'')}"
+          alt="${esc(p.title)}"
+          onerror="this.src='https://placehold.co/230x180/f2f3f0/aaa?text=No+Image'"
+          loading="lazy"
+        >
+      </div>
+      <div class="pc-body">
+        <div class="pc-title">${esc(p.title)}</div>
+        <div class="pc-meta">
+          <div class="pc-price">$${parseFloat(p.price).toFixed(2)}</div>
+          <div class="pc-id">${esc(p.id||p._id?.slice(-6)||'—')}</div>
+        </div>
+        ${p.rating ? `<div class="pc-stars">${stars}<span>${parseFloat(p.rating).toFixed(1)}</span></div>` : ''}
+        ${p.description ? `<div class="pc-detail">${esc(p.description)}</div>` : ''}
+      </div>
+      <div class="pc-footer">
+        <button class="btn btn-ghost" onclick="openEditModal('${p._id}')"><i class="fa-regular fa-pen-to-square"></i> Edit</button>
+        <button class="btn btn-danger" onclick="confirmDelete('${p._id}')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-/* ===================== DASHBOARD CHARTS (doughnut — last 5) ===================== */
-function renderDashboardCharts() {
-    const searchData = globalAnalytics.product_search || {};
-    const sortedEntries = Object.entries(searchData)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);   // Last 5 searches only
-
-    const labels = sortedEntries.map(e => e[0]);
-    const counts = sortedEntries.map(e => e[1]);
-
-    if (chartCircle) chartCircle.destroy();
-    const ctx = document.getElementById('searchCircleChart');
-    if (!ctx || labels.length === 0) return;
-
-    chartCircle = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: counts,
-                // Light blue palette segments
-                backgroundColor: ['#add8e6', '#7ec8e3', '#b0e0e6', '#87ceeb', '#c9e8f4'],
-                borderWidth: 2,
-                borderColor: '#ffffff',
-                hoverOffset: 15
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            rotation: -90,
-            circumference: 180,
-            plugins: {
-                tooltip: {
-                    backgroundColor: '#1a6a8a',
-                    titleFont: { size: 12, weight: '600' },
-                    padding: 12,
-                    displayColors: true,
-                    boxPadding: 6
-                },
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'rectRounded',
-                        padding: 15,
-                        font: { size: 10, weight: '600' },
-                        color: '#64748b'
-                    }
-                }
-            }
-        }
-    });
-}
-
-/* ===================== REFRESH INVENTORY ===================== */
-function refreshInventory(list) {
-    const grid = document.getElementById("full-inventory-grid");
-    if (!grid) return;
-
-    grid.innerHTML = list.length ? list.map(p => {
-        const isTrending = (parseFloat(p.trending_score) || 0) > 80;
-        return `
-        <div class="glass-card group flex flex-col items-center text-center p-5">
-            <div class="w-full aspect-square rounded-xl p-4 flex items-center justify-center mb-4 transition-all bg-white group-hover:shadow-inner" style="border:1px solid var(--border)">
-                <img src="${p.image_link}" class="max-h-full max-w-full object-contain"
-                    onerror="this.src='https://placehold.co/200x200?text=No+Image'">
-            </div>
-            <div class="w-full flex-1">
-                <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:var(--primary-text)">${p.category}</p>
-                <p class="text-sm font-bold text-slate-900 uppercase truncate mb-1">${p.title}</p>
-                ${isTrending ? '<span class="trending-badge mb-2"><i class="fa-solid fa-fire-flame-curved mr-1"></i>Trending</span>' : ''}
-                <div class="flex items-center justify-center gap-3 mb-4 mt-2">
-                    <p class="text-base font-bold text-slate-900">$${p.price}</p>
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
-                    <p class="text-[10px] font-bold text-slate-400 mono">${p.id}</p>
-                </div>
-            </div>
-            <div class="w-full grid grid-cols-2 gap-2 pt-4" style="border-top:1px solid var(--border)">
-                <button onclick="openEditModal('${p._id}')" class="btn-secondary">Edit</button>
-                <button onclick="confirmDelete(this, '${p._id}')" class="btn-secondary !text-red-500 hover:!bg-red-50">Delete</button>
-            </div>
-        </div>`;
-    }).join("") :
-    '<div class="col-span-full py-20 text-center text-slate-400 font-bold tracking-widest uppercase text-sm">No Registry Found</div>';
-}
-
-/* ===================== FILTER INVENTORY ===================== */
 function filterInventory(q) {
-    const query = q.toLowerCase();
-    const filtered = globalData.products.filter(p =>
-        (p.title && p.title.toLowerCase().includes(query)) ||
-        (p.id && p.id.toLowerCase().includes(query)) ||
-        (p.category && p.category.toLowerCase().includes(query))
-    );
-    refreshInventory(filtered);
+  const ql = q.toLowerCase();
+  const filtered = G.products.filter(p =>
+    (p.title||'').toLowerCase().includes(ql) ||
+    (p.id||'').toLowerCase().includes(ql) ||
+    (p.category||'').toLowerCase().includes(ql) ||
+    (p.color||'').toLowerCase().includes(ql)
+  );
+  renderInventory(filtered);
 }
 
-/* ===================== RENDER ANALYTICS CHARTS ===================== */
-function renderCharts() {
-    const clickData = globalAnalytics.product_clicks || {};
-    const questionData = globalAnalytics.most_questions || {};
-    const languageData = globalAnalytics.supported_languages || {};
+/* ═══════════════════ ANALYTICS ═══════════════════ */
+function renderAnalytics() {
+  const a = G.analytics;
+  const clickData = a.product_clicks || {};
+  const sorted = Object.entries(clickData).sort((x,y)=>y[1]-x[1]).slice(0,10);
 
-    const entries = Object.entries(clickData).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    allClickLabels = entries.map(([id]) => {
-        const p = globalData.products.find(x => x._id === id);
-        return p ? p.title.substring(0, 14) : id.substring(0, 6);
+  allClickLabels = sorted.map(([id]) => {
+    const p = G.products.find(x => x._id === id);
+    return p ? (p.title.length>14 ? p.title.slice(0,13)+'…' : p.title) : id.slice(0,8);
+  });
+  allClickValues = sorted.map(e=>e[1]);
+  drawClickChart(allClickLabels, allClickValues);
+
+  /* Language chart */
+  const langData = a.supported_languages || {};
+  const langLabels = Object.keys(langData);
+  const langVals = Object.values(langData);
+  if (langLabels.length) {
+    if (chartLang) chartLang.destroy();
+    const lc = document.getElementById('langChart');
+    if (lc) chartLang = new Chart(lc, {
+      type: 'doughnut',
+      data: {
+        labels: langLabels.map(l=>l.toUpperCase()),
+        datasets: [{ data:langVals, backgroundColor:['#4f7a3a','#6aab50','#8aab7a','#a8c89e','#c5dcc0'], borderWidth:2, borderColor:'#fff' }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ position:'right', labels:{ font:{size:11,family:'Geist'}, boxWidth:10, padding:8 } }, tooltip:{ backgroundColor:'#1a1f16', padding:10 } }
+      }
     });
-    allClickValues = entries.map(e => e[1]);
+  }
 
-    renderClicksChart(allClickLabels, allClickValues);
+  /* Questions */
+  const qs = Object.entries(a.most_questions||{}).sort((a,b)=>b[1]-a[1]);
+  const qel = document.getElementById('q-stream');
+  if (qel) qel.innerHTML = qs.length ? qs.slice(0,15).map(([q,c])=>`
+    <div class="q-item">
+      <div class="q-text">"${esc(q)}"</div>
+      <div class="q-count">${c}</div>
+    </div>`).join('') : '<div style="color:var(--ink-4);font-size:13px;text-align:center;padding:20px">No inquiries yet</div>';
 
-    // Language chart
-    if (chartLanguages) chartLanguages.destroy();
-    const langCtx = document.getElementById('languagesChart');
-    const langLabels = Object.keys(languageData);
-    const langValues = Object.values(languageData);
-
-    if (langCtx && langLabels.length > 0) {
-        chartLanguages = new Chart(langCtx, {
-            type: 'pie',
-            data: {
-                labels: langLabels.map(l => l.toUpperCase()),
-                datasets: [{
-                    data: langValues,
-                    backgroundColor: ['#add8e6', '#7ec8e3', '#87ceeb', '#b0e0e6', '#cce8f4'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { font: { size: 9, weight: 'bold' }, boxWidth: 10, padding: 8 }
-                    },
-                    tooltip: { backgroundColor: '#1a6a8a', padding: 10 }
-                }
-            }
-        });
-    }
-
-    // Questions list
-    const qList = document.getElementById("questions-list");
-    const sortedQ = Object.entries(questionData).sort((a, b) => b[1] - a[1]);
-    if (qList) {
-        qList.innerHTML = sortedQ.length ? sortedQ.map(([q, count]) => `
-            <div class="flex items-start justify-between p-3 rounded-xl hover:bg-blue-50 transition-all" style="border:1px solid var(--border);background:var(--card-gradient-start)">
-                <div class="flex-1 pr-4">
-                    <p class="text-xs font-semibold text-slate-800 leading-relaxed italic">"${q}"</p>
-                </div>
-                <span class="text-[10px] font-bold px-3 py-1 rounded-full flex-shrink-0" style="background:var(--primary);color:var(--primary-text)">${count}</span>
-            </div>
-        `).join("") :
-        '<div class="text-center py-10 text-slate-300 text-xs font-bold uppercase tracking-widest">Inquiry Stream Clear</div>';
-    }
-
-    // Analytics table
-    const tbody = document.getElementById("analytics-tbody");
-    if (tbody) {
-        tbody.innerHTML = globalData.products.slice(0, 20).map(p => `
-            <tr class="hover:bg-blue-50 transition-colors" style="border-bottom:1px solid var(--border)">
-                <td class="font-semibold text-slate-900 p-5">
-                    ${p.title}
-                    <span class="block text-[10px] text-slate-400 mono mt-1">${p.id}</span>
-                </td>
-                <td class="text-right p-5">
-                    <span class="text-[10px] font-black uppercase px-3 py-1.5 rounded-full" style="background:var(--primary);color:var(--primary-text)">Synchronized</span>
-                </td>
-            </tr>
-        `).join("");
-    }
+  /* Table */
+  const tb = document.getElementById('analytics-tbody');
+  if (tb) tb.innerHTML = G.products.slice(0,20).map(p=>`
+    <tr>
+      <td style="font-weight:600">${esc(p.title)}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3)">${esc(p.id||'—')}</td>
+      <td>${esc(p.category||'—')}</td>
+      <td style="font-weight:700;font-variant-numeric:tabular-nums">$${parseFloat(p.price||0).toFixed(2)}</td>
+      <td><span class="synced-badge">Synced</span></td>
+    </tr>`).join('');
 }
 
-/* ===================== RENDER CLICKS CHART (with tooltips) ===================== */
-function renderClicksChart(labels, values) {
-    if (chartClicks) chartClicks.destroy();
-    const clicksCtx = document.getElementById('clicksChart');
-
-    if (clicksCtx && values.length > 0) {
-        chartClicks = new Chart(clicksCtx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Engagement Index',
-                    data: values,
-                    backgroundColor: '#add8e6',
-                    hoverBackgroundColor: '#7ec8e3',
-                    borderRadius: 8,
-                    barThickness: window.innerWidth < 640 ? 15 : 24
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#f1f5f9', drawBorder: false },
-                        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8' }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 9, weight: '600' }, color: '#64748b' }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    // Light blue styled tooltips on analytics bars
-                    tooltip: {
-                        backgroundColor: '#1a6a8a',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e0f4fb',
-                        titleFont: { size: 12, weight: '700' },
-                        bodyFont: { size: 11 },
-                        padding: 12,
-                        cornerRadius: 10,
-                        displayColors: false,
-                        callbacks: {
-                            title: (items) => items[0].label,
-                            label: (item) => `Clicks: ${item.raw}`
-                        }
-                    }
-                }
-            }
-        });
+function drawClickChart(labels, values) {
+  if (chartAnalytics) chartAnalytics.destroy();
+  const ctx = document.getElementById('analyticsChart');
+  if (!ctx || !values.length) return;
+  chartAnalytics = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Clicks', data:values, backgroundColor:'#4f7a3a', hoverBackgroundColor:'#6aab50', borderRadius:6, barThickness:22 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        y:{ beginAtZero:true, grid:{color:'#f0f1ec'}, ticks:{color:'#7a7f72',font:{size:11,family:'Geist'}} },
+        x:{ grid:{display:false}, ticks:{color:'#7a7f72',font:{size:10,family:'Geist'}} }
+      },
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1a1f16', titleColor:'#fff', bodyColor:'#8aab7a', padding:12, cornerRadius:8, displayColors:false, callbacks:{label:(i)=>`Clicks: ${i.raw}`} } }
     }
+  });
 }
 
-/* ===================== ANALYTICS FILTER ===================== */
-function filterAnalyticsChart(q) {
-    if (!q) {
-        renderClicksChart(allClickLabels, allClickValues);
-        return;
-    }
-    const query = q.toLowerCase();
-    const filtered = allClickLabels
-        .map((label, i) => ({ label, value: allClickValues[i] }))
-        .filter(item => item.label.toLowerCase().includes(query));
-    renderClicksChart(filtered.map(i => i.label), filtered.map(i => i.value));
+function filterAnalytics(q) {
+  if (!q) { drawClickChart(allClickLabels, allClickValues); return; }
+  const ql = q.toLowerCase();
+  const f = allClickLabels.map((l,i)=>({l,v:allClickValues[i]})).filter(x=>x.l.toLowerCase().includes(ql));
+  drawClickChart(f.map(x=>x.l), f.map(x=>x.v));
 }
 
-/* ===================== OPEN EDIT MODAL ===================== */
+/* ═══════════════════ EDIT MODAL ═══════════════════ */
 function openEditModal(id) {
-    const p = globalData.products.find(x => x._id === id);
-    if (!p) return;
-
-    // Prefill all fields dynamically from product ID
-    document.getElementById("edit-id").value = p._id;
-    document.getElementById("edit-title").value = p.title || '';
-    document.getElementById("edit-price").value = p.price || 0;
-    document.getElementById("edit-image-link").value = p.image_link || '';
-    document.getElementById("edit-image").value = p.image || '';
-    document.getElementById("edit-material").value = p.material || '';
-    document.getElementById("edit-color").value = p.color || '';
-    document.getElementById("edit-rating").value = p.rating || '';
-    document.getElementById("edit-trending").value = p.trending_score || 0;
-    document.getElementById("edit-description").value = p.description || '';
-
-    // Set category dropdown
-    const catSelect = document.getElementById("edit-category");
-    if (catSelect && p.category) {
-        const existingOpt = [...catSelect.options].find(o => o.value === p.category);
-        if (existingOpt) {
-            catSelect.value = p.category;
-        } else {
-            const opt = document.createElement('option');
-            opt.value = p.category;
-            opt.text = p.category;
-            catSelect.add(opt);
-            catSelect.value = p.category;
-        }
-    }
-
-    document.getElementById("modal-sku-display").innerText = p.id || '--';
-    previewImg(p.image_link, 'edit-prev');
-    document.getElementById("edit-modal").classList.remove("hidden");
-    document.body.style.overflow = 'hidden';
+  const p = G.products.find(x=>x._id===id);
+  if (!p) return;
+  document.getElementById('edit-id').value = p._id;
+  document.getElementById('edit-title').value = p.title||'';
+  document.getElementById('edit-price').value = p.price||'';
+  document.getElementById('edit-image-link').value = p.image_link||'';
+  document.getElementById('edit-image').value = p.image||'';
+  document.getElementById('edit-material').value = p.material||'';
+  document.getElementById('edit-color').value = p.color||'';
+  document.getElementById('edit-rating').value = p.rating||'';
+  document.getElementById('edit-trending').value = p.trending_score||0;
+  document.getElementById('edit-description').value = p.description||'';
+  document.getElementById('modal-sku').textContent = 'SKU: ' + (p.id||p._id?.slice(-8)||'—');
+  const cat = document.getElementById('edit-category');
+  if (cat) { [...cat.options].forEach(o => o.selected = o.value===p.category); }
+  livePreview(p.image_link||'', 'edit-prev-img', 'edit-prev-box');
+  document.getElementById('edit-modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
 }
 
-/* ===================== CLOSE EDIT MODAL ===================== */
 function closeEditModal() {
-    document.getElementById("edit-modal").classList.add("hidden");
-    document.body.style.overflow = 'auto';
+  document.getElementById('edit-modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
 }
 
-/* ===================== IMAGE PREVIEW ===================== */
-function previewImg(url, id) {
-    const img = document.getElementById(id);
-    const txt = document.getElementById(id + '-txt');
-    if (url && url.length > 5) {
-        img.src = url;
-        img.classList.remove('hidden');
-        if (txt) txt.classList.add('hidden');
-    } else {
-        img.classList.add('hidden');
-        if (txt) txt.classList.remove('hidden');
-    }
+function submitEditForm() {
+  document.getElementById('edit-form').submit();
 }
 
-/* ===================== FILE UPLOAD LIVE PREVIEW ===================== */
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const nameDisplay = document.getElementById('file-name-display');
-    if (nameDisplay) nameDisplay.innerText = file.name;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = document.getElementById('add-prev');
-        const txt = document.getElementById('add-prev-txt');
-        if (img) {
-            img.src = e.target.result;
-            img.classList.remove('hidden');
-        }
-        if (txt) txt.classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
+/* ═══════════════════ DELETE ═══════════════════ */
+function confirmDelete(id) {
+  pendingDeleteId = id;
+  document.getElementById('confirm-modal').classList.add('open');
+  document.body.style.overflow='hidden';
 }
-
-/* ===================== PRICE VALIDATION (positive only) ===================== */
-function validatePrice(input) {
-    const val = parseFloat(input.value);
-    const errorId = input.id === 'add-price' ? 'price-error' : null;
-    const errorEl = errorId ? document.getElementById(errorId) : null;
-
-    if (isNaN(val) || val <= 0) {
-        input.classList.add('invalid');
-        if (errorEl) errorEl.style.display = 'block';
-    } else {
-        input.classList.remove('invalid');
-        if (errorEl) errorEl.style.display = 'none';
-    }
-}
-
-/* ===================== RATING VALIDATION (0-5, step 0.1) ===================== */
-function validateRating(input) {
-    const val = parseFloat(input.value);
-    const errorEl = document.getElementById('rating-error');
-
-    if (isNaN(val) || val < 0 || val > 5) {
-        input.classList.add('invalid');
-        if (errorEl) errorEl.style.display = 'block';
-    } else {
-        input.classList.remove('invalid');
-        if (errorEl) errorEl.style.display = 'none';
-    }
-}
-
-/* ===================== ADD PRODUCT HANDLER ===================== */
-function handleAddProduct(e) {
-    const priceInput = document.getElementById('add-price');
-    if (priceInput) {
-        const val = parseFloat(priceInput.value);
-        if (isNaN(val) || val <= 0) {
-            e.preventDefault();
-            validatePrice(priceInput);
-            priceInput.focus();
-            showToast('Please enter a valid positive price.', 'fa-circle-exclamation');
-            return false;
-        }
-    }
-
-    // Show success toast
-    showToast('Product registered successfully!', 'fa-circle-check');
-
-    // Immediately update avg price in dashboard
-    const titleInput = e.target.querySelector('[name="title"]');
-    const catInput = e.target.querySelector('[name="category"]');
-    if (titleInput && priceInput && catInput) {
-        const mockProduct = {
-            title: titleInput.value,
-            price: parseFloat(priceInput.value || 0),
-            category: catInput.value,
-            _id: 'new_' + Date.now(),
-            id: e.target.querySelector('[name="id"]')?.value || 'NEW',
-            image_link: document.getElementById('add-image-link')?.value || ''
-        };
-        globalData.products.push(mockProduct);
-        updateAveragePrice(globalData.products);
-    }
-}
-
-/* ===================== CONFIRM DELETE ===================== */
-function confirmDelete(btn, productId) {
-    pendingDeleteId = productId;
-    document.getElementById('confirm-popup').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
 function cancelDelete() {
-    pendingDeleteId = null;
-    document.getElementById('confirm-popup').classList.add('hidden');
-    document.body.style.overflow = 'auto';
+  pendingDeleteId = null;
+  document.getElementById('confirm-modal').classList.remove('open');
+  document.body.style.overflow='';
 }
-
 function executeDelete() {
-    if (!pendingDeleteId) return;
-    const form = document.createElement('form');
-    form.action = '/delete_product';
-    form.method = 'POST';
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'id';
-    input.value = pendingDeleteId;
-    form.appendChild(input);
-    document.body.appendChild(form);
-    cancelDelete();
-    form.submit();
+  if (!pendingDeleteId) return;
+  const f = document.createElement('form');
+  f.method='POST'; f.action='/delete_product';
+  const inp = document.createElement('input');
+  inp.type='hidden'; inp.name='id'; inp.value=pendingDeleteId;
+  f.appendChild(inp); document.body.appendChild(f);
+  cancelDelete(); f.submit();
 }
 
-/* ===================== TOAST NOTIFICATION ===================== */
-function showToast(message, icon = 'fa-circle-info') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `
-        <i class="fa-solid ${icon}" style="font-size:16px"></i>
-        <span>${message}</span>
-    `;
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        if (toast.parentNode) toast.parentNode.removeChild(toast);
-    }, 4100);
+/* ═══════════════════ ADD PRODUCT ═══════════════════ */
+function handleAddSubmit(e) {
+  const price = parseFloat(e.target.querySelector('[name="price"]').value);
+  if (isNaN(price)||price<=0) {
+    e.preventDefault();
+    toast('Please enter a valid price greater than zero.', 'error');
+    return;
+  }
+  toast('Product registered successfully!', 'success');
 }
 
-/* ===================== KEYBOARD SHORTCUTS ===================== */
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeEditModal();
-        cancelDelete();
-    }
+/* ═══════════════════ IMAGE PREVIEW ═══════════════════ */
+function livePreview(url, imgId, boxId) {
+  const img = document.getElementById(imgId);
+  const box = document.getElementById(boxId);
+  if (!img||!box) return;
+  const placeholder = box.querySelector('.img-preview-placeholder');
+  if (url && url.length > 6) {
+    img.src = url;
+    img.style.display='block';
+    if (placeholder) placeholder.style.display='none';
+  } else {
+    img.style.display='none';
+    if (placeholder) placeholder.style.display='flex';
+  }
+}
+
+/* ═══════════════════ TOAST ═══════════════════ */
+function toast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':'fa-circle-check'}" style="${type==='error'?'color:#ef4444':''}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{ if(t.parentNode) t.parentNode.removeChild(t); }, 3800);
+}
+
+/* ═══════════════════ KEYBOARD ═══════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') { closeEditModal(); cancelDelete(); }
+});
+document.getElementById('edit-modal-overlay').addEventListener('click', e => {
+  if (e.target===e.currentTarget) closeEditModal();
+});
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target===e.currentTarget) cancelDelete();
 });
 
-/* ===================== BACKDROP CLICK CLOSE MODAL ===================== */
-document.addEventListener('click', (e) => {
-    const modal = document.getElementById('edit-modal');
-    if (modal && e.target === modal) {
-        closeEditModal();
-    }
-});
-
+/* ═══════════════════ UTILS ═══════════════════ */
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>
