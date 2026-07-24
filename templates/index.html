@@ -621,6 +621,67 @@
             background: var(--primary-dark);
             transform: translateY(-50%) scale(1.1);
         }
+
+        /* ===================== RANGE TOGGLE (Chatbot Sales) ===================== */
+        .range-toggle-group {
+            display: inline-flex;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .range-toggle-btn {
+            border: none;
+            background: transparent;
+            color: var(--primary-text);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .range-toggle-btn:hover { background: var(--card-gradient-start); }
+
+        .range-toggle-btn.active-range {
+            background: var(--primary);
+            color: var(--primary-text);
+            box-shadow: 0 2px 10px var(--shadow-blue);
+        }
+
+        /* ===================== PARTNER AVATAR ===================== */
+        .partner-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 800;
+            font-size: 15px;
+            background: var(--primary);
+            color: var(--primary-text);
+        }
+
+        .permission-checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .permission-checkbox-row input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--primary-dark);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -727,6 +788,9 @@
         </div>
         <div onclick="switchTab('add-product')" id="link-add-product" class="nav-item">
             <i class="fa-solid fa-plus w-5 text-center"></i> New Entry
+        </div>
+        <div onclick="switchTab('partner')" id="link-partner" class="nav-item">
+            <i class="fa-solid fa-handshake w-5 text-center"></i> Your Partner
         </div>
     </nav>
 
@@ -903,6 +967,29 @@
                 </div>
             </div>
 
+            <!-- TOTAL SALES THROUGH CHATBOT -->
+            <div class="glass-card">
+                <div class="flex flex-wrap justify-between items-center mb-2 gap-4">
+                    <div>
+                        <h4 style="font-size:16px">Total Sales via Chatbot</h4>
+                        <p class="text-xs text-slate-500 mt-1">Revenue generated through chatbot-assisted checkouts</p>
+                    </div>
+                    <div class="range-toggle-group">
+                        <button type="button" id="sales-range-week" class="range-toggle-btn active-range" onclick="renderChatbotSalesChart('week')">Last Week</button>
+                        <button type="button" id="sales-range-month" class="range-toggle-btn" onclick="renderChatbotSalesChart('month')">Last Month</button>
+                    </div>
+                </div>
+                <div class="flex items-end gap-3 mb-6">
+                    <div id="chatbot-total-sales" class="stat-value">$0</div>
+                    <span class="growth-tag mb-1.5" style="background:var(--primary);color:var(--primary-text)">
+                        <i class="fa-solid fa-robot mr-1"></i> Chatbot Driven
+                    </span>
+                </div>
+                <div class="h-[280px] md:h-[320px]">
+                    <canvas id="chatbotSalesChart"></canvas>
+                </div>
+            </div>
+
             <div class="glass-card overflow-hidden !p-0">
                 <div class="p-6" style="border-bottom:1px solid var(--border)">
                     <h4 style="font-size:16px">Product Synchronization</h4>
@@ -1049,6 +1136,75 @@
             </div>
         </div>
 
+        <!-- ====== YOUR PARTNER TAB ====== -->
+        <div id="tab-partner" class="tab-pane max-w-5xl mx-auto space-y-8">
+            <div class="glass-card p-6 md:p-10">
+                <div class="mb-8 pb-6" style="border-bottom:1px solid var(--border)">
+                    <h3 style="font-size:18px">Your Partner</h3>
+                    <p class="text-sm text-slate-500 mt-2">Invite a partner to help manage your store, and control exactly what they can access.</p>
+                </div>
+
+                <form id="partner-invite-form" class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10" onsubmit="sendPartnerInvite(event)">
+                    <!-- Left Column -->
+                    <div class="space-y-5">
+                        <div>
+                            <label class="form-label">Partner Name</label>
+                            <input id="partner-name" placeholder="e.g. Sarah Khan" required class="input-field">
+                        </div>
+                        <div>
+                            <label class="form-label">Partner Email</label>
+                            <input id="partner-email" type="email" placeholder="partner@example.com" required class="input-field">
+                        </div>
+                        <div>
+                            <label class="form-label">Access Option</label>
+                            <select id="partner-access-level" class="input-field" onchange="togglePermissionBox(this.value)">
+                                <option value="full">Full Access</option>
+                                <option value="limited" selected>Limited Access (choose permissions)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Invitation Note (optional)</label>
+                            <textarea id="partner-note" class="input-field h-24 resize-none" style="border-radius:14px" placeholder="Add a short note to include with the invitation..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-5">
+                        <label class="form-label">Permissions</label>
+                        <div id="partner-permissions-box" class="space-y-3 p-5 rounded-2xl" style="border:1px solid var(--border);background:var(--card-gradient-start)">
+                            <label class="permission-checkbox-row">
+                                <input type="checkbox" class="partner-perm" value="Dashboard" checked> Dashboard
+                            </label>
+                            <label class="permission-checkbox-row">
+                                <input type="checkbox" class="partner-perm" value="Inventory" checked> Inventory
+                            </label>
+                            <label class="permission-checkbox-row">
+                                <input type="checkbox" class="partner-perm" value="Analytics"> Analytics
+                            </label>
+                            <label class="permission-checkbox-row">
+                                <input type="checkbox" class="partner-perm" value="New Entry"> New Entry (Add Products)
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary w-full py-4 text-sm tracking-widest uppercase shadow-lg">
+                            <i class="fa-solid fa-paper-plane mr-2"></i>
+                            Send Invitation
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="glass-card overflow-hidden !p-0">
+                <div class="p-6 flex justify-between items-center" style="border-bottom:1px solid var(--border)">
+                    <h4 style="font-size:16px">Connected &amp; Pending Partners</h4>
+                    <span id="partner-count-badge" class="growth-tag" style="background:var(--primary);color:var(--primary-text)">0 Total</span>
+                </div>
+                <div id="partner-list" class="p-6 space-y-3">
+                    <div class="text-center py-10 text-slate-300 text-xs font-bold uppercase tracking-widest">No Partners Invited Yet</div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /main-content-inner -->
 
     <!-- ====== FOOTER ====== -->
@@ -1164,12 +1320,27 @@ let globalAnalytics = {
 let chartClicks = null;
 let chartCircle = null;
 let chartLanguages = null;
+let chartChatbotSales = null;
 let sidebarCollapsed = false;
 let allClickLabels = [];
 let allClickValues = [];
 let pendingDeleteId = null;
+let partnersList = [];
 
 const authStatus = "{{ status }}";
+
+/* ===================== MOCK CHATBOT SALES DATA ===================== */
+/* Placeholder figures until a live sales-through-chatbot endpoint is wired up */
+const mockChatbotSales = {
+    week: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        values: [420, 385, 510, 468, 605, 742, 690]
+    },
+    month: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        values: [2860, 3210, 2945, 3620]
+    }
+};
 
 /* ===================== SIDEBAR TOGGLE ===================== */
 function toggleSidebar() {
@@ -1576,6 +1747,9 @@ function renderCharts() {
             </tr>
         `).join("");
     }
+
+    // Total sales via chatbot (defaults to last-week view)
+    renderChatbotSalesChart('week');
 }
 
 /* ===================== RENDER CLICKS CHART (with tooltips) ===================== */
@@ -1645,6 +1819,79 @@ function filterAnalyticsChart(q) {
         .map((label, i) => ({ label, value: allClickValues[i] }))
         .filter(item => item.label.toLowerCase().includes(query));
     renderClicksChart(filtered.map(i => i.label), filtered.map(i => i.value));
+}
+
+/* ===================== TOTAL SALES VIA CHATBOT (mock: last week / last month) ===================== */
+function renderChatbotSalesChart(range) {
+    const weekBtn = document.getElementById('sales-range-week');
+    const monthBtn = document.getElementById('sales-range-month');
+    if (weekBtn) weekBtn.classList.toggle('active-range', range === 'week');
+    if (monthBtn) monthBtn.classList.toggle('active-range', range === 'month');
+
+    const data = mockChatbotSales[range] || mockChatbotSales.week;
+    const total = data.values.reduce((a, b) => a + b, 0);
+    const totalEl = document.getElementById('chatbot-total-sales');
+    if (totalEl) totalEl.innerText = `$${total.toLocaleString()}`;
+
+    if (chartChatbotSales) chartChatbotSales.destroy();
+    const ctx = document.getElementById('chatbotSalesChart');
+    if (!ctx) return;
+
+    chartChatbotSales = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Sales via Chatbot ($)',
+                data: data.values,
+                borderColor: '#7ec8e3',
+                backgroundColor: 'rgba(173,216,230,0.28)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#1a6a8a',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9', drawBorder: false },
+                    ticks: {
+                        font: { size: 10, weight: '600' }, color: '#94a3b8',
+                        callback: (v) => `$${v}`
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10, weight: '600' }, color: '#64748b' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1a6a8a',
+                    titleColor: '#ffffff',
+                    bodyColor: '#e0f4fb',
+                    titleFont: { size: 12, weight: '700' },
+                    bodyFont: { size: 11 },
+                    padding: 12,
+                    cornerRadius: 10,
+                    displayColors: false,
+                    callbacks: {
+                        title: (items) => items[0].label,
+                        label: (item) => `Sales: $${item.raw.toLocaleString()}`
+                    }
+                }
+            }
+        }
+    });
 }
 
 /* ===================== OPEN EDIT MODAL ===================== */
@@ -1815,6 +2062,89 @@ function executeDelete() {
     document.body.appendChild(form);
     cancelDelete();
     form.submit();
+}
+
+/* ===================== YOUR PARTNER — ACCESS OPTION & INVITE ===================== */
+function togglePermissionBox(level) {
+    const box = document.getElementById('partner-permissions-box');
+    if (!box) return;
+    const checkboxes = box.querySelectorAll('.partner-perm');
+    if (level === 'full') {
+        checkboxes.forEach(cb => { cb.checked = true; cb.disabled = true; });
+        box.style.opacity = '0.7';
+    } else {
+        checkboxes.forEach(cb => { cb.disabled = false; });
+        box.style.opacity = '1';
+    }
+}
+
+function sendPartnerInvite(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('partner-name').value.trim();
+    const email = document.getElementById('partner-email').value.trim();
+    const level = document.getElementById('partner-access-level').value;
+    const note = document.getElementById('partner-note').value.trim();
+    const perms = level === 'full'
+        ? ['Full Access']
+        : [...document.querySelectorAll('.partner-perm:checked')].map(cb => cb.value);
+
+    if (!name || !email) {
+        showToast('Please enter a partner name and email.', 'fa-circle-exclamation');
+        return;
+    }
+
+    if (!perms.length) {
+        showToast('Select at least one permission for your partner.', 'fa-circle-exclamation');
+        return;
+    }
+
+    partnersList.push({
+        name,
+        email,
+        level,
+        perms,
+        note,
+        status: 'Invitation Sent',
+        invitedAt: new Date()
+    });
+
+    renderPartnerList();
+    showToast(`Invitation sent to ${email}!`, 'fa-paper-plane');
+
+    document.getElementById('partner-invite-form').reset();
+    togglePermissionBox('limited');
+    document.getElementById('partner-access-level').value = 'limited';
+}
+
+function renderPartnerList() {
+    const list = document.getElementById('partner-list');
+    const badge = document.getElementById('partner-count-badge');
+    if (badge) badge.innerText = `${partnersList.length} Total`;
+    if (!list) return;
+
+    if (!partnersList.length) {
+        list.innerHTML = '<div class="text-center py-10 text-slate-300 text-xs font-bold uppercase tracking-widest">No Partners Invited Yet</div>';
+        return;
+    }
+
+    list.innerHTML = partnersList.map((p, i) => `
+        <div class="flex items-center gap-4 p-3 rounded-2xl" style="border:1px solid var(--border)">
+            <div class="partner-avatar">${p.name.charAt(0).toUpperCase()}</div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold text-slate-800 truncate">${p.name} <span class="text-slate-400 font-medium">• ${p.email}</span></p>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">${p.perms.join(', ')}</p>
+            </div>
+            <span class="growth-tag" style="background:#fef3c7;color:#b45309">${p.status}</span>
+            <button onclick="revokePartner(${i})" class="btn-secondary !text-red-500 hover:!bg-red-50 text-[10px] px-3 py-1.5 flex-shrink-0">Revoke</button>
+        </div>
+    `).join("");
+}
+
+function revokePartner(index) {
+    partnersList.splice(index, 1);
+    renderPartnerList();
+    showToast('Partner access revoked.', 'fa-circle-info');
 }
 
 /* ===================== TOAST NOTIFICATION ===================== */
